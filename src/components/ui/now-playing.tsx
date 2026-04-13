@@ -6,12 +6,12 @@ import { MovieDetails } from "@/types/movie";
 
 async function fetchNowPlayingMovies(): Promise<MovieDetails[]> {
   try {
-    const response = await fetch("https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=1", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_TMDB_API_BASE_URL}/movie/now_playing?language=en-US&page=1`, {
       headers: {
-        accept: "application/json",
+        accept: 'application/json',
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_TOKEN}`,
       },
-      cache: "force-cache",
+      cache: 'force-cache',
     });
 
     if (!response.ok) {
