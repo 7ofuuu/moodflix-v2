@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="nostalgic-bg" x1="12" y1="12" x2="108" y2="108" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E4D7FF" />
+      <stop offset="1" stop-color="#BEA2FF" />
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="112" height="112" rx="28" fill="url(#nostalgic-bg)" />
+  <circle cx="60" cy="62" r="34" fill="#F8F3FF" />
+  <circle cx="47" cy="55" r="4" fill="#3C2F58" />
+  <circle cx="73" cy="55" r="4" fill="#3C2F58" />
+  <path d="M45 75C49 71 54 69 60 69C66 69 71 71 75 75" stroke="#3C2F58" stroke-width="4" stroke-linecap="round" />
+  <circle cx="89" cy="40" r="8" fill="#F8F3FF" stroke="#7E66B4" stroke-width="2" />
+  <path d="M89 35V40L92 43" stroke="#7E66B4" stroke-width="2" stroke-linecap="round" />
+</svg>
