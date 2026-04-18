@@ -1,23 +1,23 @@
 'use client';
 
-import { useState, useLayoutEffect } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { MoodSelector } from '@/components/features/quiz/MoodSelector';
 import { ActionSelector } from '@/components/features/quiz/ActionSelector';
 import { MovieRecommendations } from '@/components/features/quiz/MovieRecommendations';
 import { useQuizRecommendations } from '@/hooks/useQuizRecommendations';
+import { isMoodKey } from '@/lib/mood';
 
 type QuizStep = 'mood' | 'action' | 'results';
 
-export default function QuizPage() {
-  const [mounted, setMounted] = useState(false);
-  const [step, setStep] = useState<QuizStep>('mood');
-  const [selectedMood, setSelectedMood] = useState<string | null>(null);
+function QuizPageContent() {
+  const searchParams = useSearchParams();
+  const moodParam = searchParams.get('mood');
+  const initialMood = moodParam && isMoodKey(moodParam.toLowerCase()) ? moodParam.toLowerCase() : null;
+  const [step, setStep] = useState<QuizStep>(initialMood ? 'action' : 'mood');
+  const [selectedMood, setSelectedMood] = useState<string | null>(initialMood);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
-  const { recommendations, isLoading, error, getRecommendations } = useQuizRecommendations();
-
-  useLayoutEffect(() => {
-    setMounted(true);
-  }, []);
+  const { recommendations, isLoading, error, source, getRecommendations } = useQuizRecommendations();
 
   const handleMoodNext = () => {
     setStep('action');
@@ -40,42 +40,59 @@ export default function QuizPage() {
     setSelectedAction(null);
   };
 
-  if (!mounted) {
-    return null;
-  }
-
   return (
     <>
-      <section className='container py-12 md:py-20 px-7'>
-        <div className='max-w-4xl mx-auto'>
-          {step === 'mood' && (
-            <MoodSelector
-              selectedMood={selectedMood}
-              onMoodSelect={setSelectedMood}
-              onNext={handleMoodNext}
-            />
-          )}
+      <section className='quiz-fullscreen-surface relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] min-h-screen w-screen px-4 py-12 md:px-7 md:py-16'>
+        <div className='mx-auto w-full max-w-[1600px]'>
+          <div className={`mx-auto w-full ${step === 'results' ? '' : 'max-w-5xl'}`}>
+            {step === 'mood' && (
+              <MoodSelector
+                selectedMood={selectedMood}
+                onMoodSelect={setSelectedMood}
+                onNext={handleMoodNext}
+              />
+            )}
 
-          {step === 'action' && (
-            <ActionSelector
-              selectedAction={selectedAction}
-              onActionSelect={setSelectedAction}
-              onNext={handleActionNext}
-              onBack={handleActionBack}
-              isLoading={isLoading}
-            />
-          )}
+            {step === 'action' && (
+              <ActionSelector
+                selectedAction={selectedAction}
+                onActionSelect={setSelectedAction}
+                onNext={handleActionNext}
+                onBack={handleActionBack}
+                isLoading={isLoading}
+              />
+            )}
 
-          {step === 'results' && (
-            <MovieRecommendations
-              recommendations={recommendations}
-              isLoading={isLoading}
-              error={error}
-              onReset={handleReset}
-            />
-          )}
+            {step === 'results' && (
+              <MovieRecommendations
+                recommendations={recommendations}
+                isLoading={isLoading}
+                error={error}
+                source={source}
+                onReset={handleReset}
+              />
+            )}
+          </div>
         </div>
       </section>
     </>
+  );
+}
+
+function QuizPageFallback() {
+  return (
+    <section className='quiz-fullscreen-surface relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] min-h-screen w-screen px-4 py-12 md:px-7 md:py-16'>
+      <div className='mx-auto flex w-full max-w-5xl items-center justify-center'>
+        <div className='h-8 w-8 animate-spin rounded-full border-b-2 border-primary' />
+      </div>
+    </section>
+  );
+}
+
+export default function QuizPage() {
+  return (
+    <Suspense fallback={<QuizPageFallback />}>
+      <QuizPageContent />
+    </Suspense>
   );
 }

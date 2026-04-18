@@ -1,23 +1,30 @@
 import { useState } from 'react';
+import { MovieDetails } from '@/types/movie';
+import {
+  LAST_ACTION_STORAGE_KEY,
+  LAST_MOOD_EVENT,
+  LAST_MOOD_STORAGE_KEY,
+  LAST_MOOD_UPDATED_KEY,
+} from '@/lib/mood';
 
-interface Movie {
-  id: number;
-  title: string;
-  poster_path: string | null;
-  release_date: string;
-  vote_average: number;
-  overview: string;
+interface RecommendationResponse {
+  movies: MovieDetails[];
+  source?: 'gemini-hybrid' | 'tmdb-fallback';
 }
 
 export function useQuizRecommendations() {
-  const [recommendations, setRecommendations] = useState<Movie[]>([]);
+  const [recommendations, setRecommendations] = useState<MovieDetails[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [source, setSource] = useState<'gemini-hybrid' | 'tmdb-fallback' | null>(
+    null
+  );
 
   const getRecommendations = async (mood: string, action: string) => {
     try {
       setIsLoading(true);
       setError(null);
+      setSource(null);
       const response = await fetch('/api/recommendations', {
         method: 'POST',
         headers: {
@@ -30,17 +37,34 @@ export function useQuizRecommendations() {
         throw new Error('Failed to get recommendations');
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as RecommendationResponse;
       setRecommendations(data.movies || []);
+      setSource(data.source ?? null);
+
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(LAST_MOOD_STORAGE_KEY, mood);
+        window.localStorage.setItem(LAST_ACTION_STORAGE_KEY, action);
+        window.localStorage.setItem(LAST_MOOD_UPDATED_KEY, new Date().toISOString());
+        window.dispatchEvent(
+          new CustomEvent(LAST_MOOD_EVENT, {
+            detail: {
+              mood,
+              action,
+            },
+          })
+        );
+      }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'An error occurred while fetching recommendations'
       );
       setRecommendations([]);
+      setSource(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  return { recommendations, isLoading, error, getRecommendations };
+  return { recommendations, isLoading, error, source, getRecommendations };
 }
+
