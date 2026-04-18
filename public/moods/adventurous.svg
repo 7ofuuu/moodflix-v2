@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="adventure-bg" x1="12" y1="12" x2="108" y2="108" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D8F2D3" />
+      <stop offset="1" stop-color="#93D68C" />
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="112" height="112" rx="28" fill="url(#adventure-bg)" />
+  <circle cx="60" cy="62" r="34" fill="#F1FFF0" />
+  <path d="M41 52L50 48" stroke="#274029" stroke-width="4" stroke-linecap="round" />
+  <path d="M79 52L70 48" stroke="#274029" stroke-width="4" stroke-linecap="round" />
+  <circle cx="47" cy="57" r="4" fill="#274029" />
+  <circle cx="73" cy="57" r="4" fill="#274029" />
+  <path d="M46 77C50 79 55 80 60 80C65 80 70 79 74 77" stroke="#274029" stroke-width="4" stroke-linecap="round" />
+  <path d="M90 38L95 34L94 40L100 42L94 44L95 50L90 46L85 50L86 44L80 42L86 40L85 34L90 38Z" fill="#3E6C40" />
+</svg>
