@@ -44,10 +44,8 @@ function AuthCallbackContent() {
     handleCallback();
   }, [searchParams, router]);
 
-  const statusColor =
-    status === 'success' ? 'text-green-400' :
-    status === 'error' ? 'text-red-400' :
-    'text-white/60';
+  const statusColorMap = { success: 'text-green-400', error: 'text-red-400', loading: 'text-white/60' } as const;
+  const statusColor = statusColorMap[status];
 
   return (
     <div className='min-h-screen flex items-center justify-center bg-linear-to-br from-slate-950 via-purple-900/20 to-slate-950 px-4'>

@@ -22,13 +22,13 @@ function FilterCombobox({
   placeholder,
   options,
   triggerClassName,
-}: {
+}: Readonly<{
   value: string;
   onValueChange: (v: string) => void;
   placeholder: string;
   options: ComboboxOption[];
   triggerClassName?: string;
-}) {
+}>) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 

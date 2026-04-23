@@ -25,7 +25,7 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
-  const [viewportHeight, setViewportHeight] = useState(() => (typeof globalThis.window === 'undefined' ? 0 : globalThis.window.innerHeight));
+  const [viewportHeight, setViewportHeight] = useState(() => (globalThis.window === undefined ? 0 : globalThis.window.innerHeight));
 
   const toggleMenu = () => setIsMenuOpen(prev => !prev);
   const scrolled = !isHome || scrollY > 60;
