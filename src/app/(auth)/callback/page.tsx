@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/auth-client';
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -13,16 +13,14 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Get the code from URL
         const code = searchParams.get('code');
-        
+
         if (!code) {
           setStatus('error');
           setMessage('No confirmation code found. Please check your email link.');
           return;
         }
 
-        // Exchange code for session
         const { error } = await supabase.auth.exchangeCodeForSession(code);
 
         if (error) {
@@ -33,8 +31,7 @@ export default function AuthCallbackPage() {
 
         setStatus('success');
         setMessage('Email confirmed successfully! Redirecting...');
-        
-        // Redirect to home after 2 seconds
+
         setTimeout(() => {
           router.push('/');
         }, 2000);
@@ -67,7 +64,7 @@ export default function AuthCallbackPage() {
             </div>
           )}
         </div>
-        
+
         <h1 className='text-2xl font-bold text-white mb-2'>Email Confirmation</h1>
         <p className={`text-lg ${
           status === 'success' ? 'text-green-400' :
@@ -78,5 +75,13 @@ export default function AuthCallbackPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense>
+      <AuthCallbackContent />
+    </Suspense>
   );
 }
