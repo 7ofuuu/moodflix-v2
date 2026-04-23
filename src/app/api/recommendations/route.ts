@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { MOOD_GENRE_MAP, VALID_ACTIONS } from '@/lib/mood';
 import { fetchTmdb, validateTmdbEnv } from '@/lib/tmdb';
 import type { ActionType } from '@/lib/mood';
@@ -134,7 +135,7 @@ async function fetchFallbackRecommendations(mood: string, action: ActionType): P
       recommendation_reason: buildFallbackReason(mood, action),
     }));
   } catch (error) {
-    console.error('Fallback recommendation failed:', error);
+    logger.error('Fallback recommendation failed:', error);
     return [];
   }
 }
@@ -262,7 +263,7 @@ export async function POST(request: NextRequest) {
         reasonsById = new Map(geminiResponse.reasons.map(item => [item.id, item.reason]));
         source = 'gemini-hybrid';
       } catch (geminiError) {
-        console.warn('Gemini failed, using fallback:', geminiError);
+        logger.warn('Gemini failed, using fallback:', geminiError);
       }
     }
 
@@ -291,7 +292,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('API error:', message);
+    logger.error('API error:', message);
     return NextResponse.json({ error: 'Failed to get recommendations' }, { status: 500 });
   }
 }

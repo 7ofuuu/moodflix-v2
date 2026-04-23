@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { logger } from '@/lib/logger';
 import { MovieReview } from '@/types/movie';
 
 interface ReviewParams {
@@ -57,7 +58,7 @@ export function useMovieReviews(params: ReviewParams): ReviewsResult {
         if (err instanceof DOMException && err.name === 'AbortError') return;
         setError('Failed to load reviews');
         setReviews([]);
-        console.error('Error loading reviews:', err);
+        logger.error('Error loading reviews:', err);
       } finally {
         setIsLoading(false);
       }

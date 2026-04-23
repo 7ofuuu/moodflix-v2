@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { fetchTmdb, validateTmdbEnv } from '@/lib/tmdb';
 import { sanitizeIntParam } from '@/lib/sanitize';
 import { normalizeMood, MOOD_GENRE_MAP } from '@/lib/mood';
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Mood feed error:', message);
+    logger.error('Mood feed error:', message);
     return NextResponse.json({ error: 'Failed to fetch mood feed' }, { status: 500 });
   }
 }

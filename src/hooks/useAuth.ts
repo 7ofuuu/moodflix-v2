@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/auth-client';
+import { logger } from '@/lib/logger';
 import type { User } from '@supabase/supabase-js';
 
 interface UserProfile {
@@ -33,7 +34,7 @@ export function useAuth() {
           setUserProfile(data);
         }
       } catch (error) {
-        console.error('Error fetching user:', error);
+        logger.error('Error fetching user:', error);
       } finally {
         setIsLoading(false);
       }

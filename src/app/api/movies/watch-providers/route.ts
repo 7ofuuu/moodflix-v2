@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { fetchTmdb, validateTmdbEnv } from '@/lib/tmdb';
 
 interface TmdbProviderResponse {
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ providers });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Watch providers API error:', message);
+    logger.error('Watch providers API error:', message);
     return NextResponse.json({ error: 'Failed to fetch watch providers' }, { status: 500 });
   }
 }
