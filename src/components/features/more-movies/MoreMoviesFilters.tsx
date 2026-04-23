@@ -125,7 +125,7 @@ export function MoreMoviesFilters({
   onEraChange,
   onProviderChange,
   onReset,
-}: MoreMoviesFiltersProps) {
+}: Readonly<MoreMoviesFiltersProps>) {
   const moodEntries = Object.entries(MOOD_LABELS);
 
   return (

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Menu, X, Film, LogOut, Settings } from 'lucide-react';
 import { Button } from './button';
@@ -9,7 +9,6 @@ import { Avatar } from '@/components/common/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { signOut } from '@/lib/auth-client';
 import { logger } from '@/lib/logger';
-import { useRouter } from 'next/navigation';
 
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
@@ -26,7 +25,7 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
-  const [viewportHeight, setViewportHeight] = useState(() => (typeof window === 'undefined' ? 0 : window.innerHeight));
+  const [viewportHeight, setViewportHeight] = useState(() => (typeof globalThis.window === 'undefined' ? 0 : globalThis.window.innerHeight));
 
   const toggleMenu = () => setIsMenuOpen(prev => !prev);
   const scrolled = !isHome || scrollY > 60;
@@ -67,8 +66,7 @@ export default function Navbar() {
   const positionClass = isHome ? 'fixed' : 'sticky';
 
   return (
-    <>
-      <nav
+    <nav
         className={`${positionClass} top-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${navBg}`}
         role='navigation'
         aria-label='Main navigation'
@@ -259,7 +257,6 @@ export default function Navbar() {
             )}
           </div>
         </div>
-      </nav>
-    </>
+    </nav>
   );
 }
