@@ -44,6 +44,11 @@ function AuthCallbackContent() {
     handleCallback();
   }, [searchParams, router]);
 
+  const statusColor =
+    status === 'success' ? 'text-green-400' :
+    status === 'error' ? 'text-red-400' :
+    'text-white/60';
+
   return (
     <div className='min-h-screen flex items-center justify-center bg-linear-to-br from-slate-950 via-purple-900/20 to-slate-950 px-4'>
       <div className='text-center'>
@@ -66,11 +71,7 @@ function AuthCallbackContent() {
         </div>
 
         <h1 className='text-2xl font-bold text-white mb-2'>Email Confirmation</h1>
-        <p className={`text-lg ${
-          status === 'success' ? 'text-green-400' :
-          status === 'error' ? 'text-red-400' :
-          'text-white/60'
-        }`}>
+        <p className={`text-lg ${statusColor}`}>
           {message}
         </p>
       </div>

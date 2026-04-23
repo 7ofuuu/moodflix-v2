@@ -12,7 +12,7 @@ export function Avatar({
   fullName,
   email,
   size = 'md',
-}: AvatarProps) {
+}: Readonly<AvatarProps>) {
   const sizeClasses = {
     sm: 'w-8 h-8 text-xs',
     md: 'w-10 h-10 text-sm',
@@ -48,7 +48,7 @@ export function Avatar({
       'bg-cyan-500',
       'bg-indigo-500',
     ];
-    const index = initials.charCodeAt(0) % colors.length;
+    const index = (initials.codePointAt(0) ?? 0) % colors.length;
     return colors[index];
   };
 

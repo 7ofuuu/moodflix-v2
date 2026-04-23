@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent, ReactNode } from 'react';
+import { useState, ReactNode } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -37,7 +37,7 @@ export function AuthForm({
   footerLinkText,
   footerLinkHref,
   isLoading = false,
-}: AuthFormProps) {
+}: Readonly<AuthFormProps>) {
   const [formData, setFormData] = useState<Record<string, string>>(
     fields.reduce((acc, field) => ({ ...acc, [field.id]: '' }), {})
   );
@@ -61,7 +61,7 @@ export function AuthForm({
         newErrors[field.id] = `${field.label} is required`;
       }
       if (field.type === 'email' && formData[field.id]) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
         if (!emailRegex.test(formData[field.id])) {
           newErrors[field.id] = 'Please enter a valid email';
         }
@@ -84,7 +84,7 @@ export function AuthForm({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!validateForm()) return;
