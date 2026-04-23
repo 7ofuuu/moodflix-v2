@@ -8,6 +8,7 @@ import { Button } from './button';
 import { Avatar } from '@/components/common/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { signOut } from '@/lib/auth-client';
+import { logger } from '@/lib/logger';
 import { useRouter } from 'next/navigation';
 
 const NAV_LINKS = [
@@ -37,7 +38,7 @@ export default function Navbar() {
       setIsProfileOpen(false);
       router.push('/');
     } catch (error) {
-      console.error('Logout error:', error);
+      logger.error('Logout error:', error);
     }
   };
 

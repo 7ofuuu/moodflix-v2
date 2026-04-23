@@ -1,14 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Read(//c/c/KULIAH/SEMESTER 6 RPL/DEVOPS/**)",
-      "Read(//c/c/KULIAH/SEMESTER 6 RPL/DEVOPS/moodflix-v2/**)",
-      "Bash(npx jest *)",
-      "Bash(echo \"Exit code: $?\")",
-      "Bash(node -e ' *)",
-      "Bash(node -e \"const fs=require\\('fs'\\); const content=fs.readFileSync\\('.github/workflows/ci.yml','utf8'\\); console.log\\('File size:', content.length, 'bytes'\\); console.log\\('Jobs found:', content.match\\(/^  \\\\w+:$/gm\\)?.length || 0\\);\")",
-      "Bash(grep -E \"^  [a-z\\\\-]+:$\" \".github/workflows/ci.yml\")",
-      "Bash(grep -E \"^  [a-z\\\\-]+:$\")"
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); deps={**d.get\\('dependencies',{}\\), **d.get\\('devDependencies',{}\\)}; [print\\(k,v\\) for k,v in deps.items\\(\\) if any\\(x in k for x in ['radix','cmdk','command','popover','headless']\\)]\")",
+      "Bash(node:*)",
+      "Bash(npx tsc:*)",
+      "Bash(grep -l \"OGLRenderingContext\" \"C:/KULIAH/SEMESTER 6 RPL/DEVOPS/moodflix-v2/node_modules/ogl/dist/\"*)"
     ]
   }
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { logger } from '@/lib/logger';
 import { MovieDetails } from '@/types/movie';
 import { useDebounce } from './useDebounce';
 
@@ -82,7 +83,7 @@ export function useDiscoverMovies(params: DiscoverParams): DiscoverResult {
         if (err instanceof DOMException && err.name === 'AbortError') return;
         setError('Failed to load movies');
         setMovies([]);
-        console.error('Error loading movies:', err);
+        logger.error('Error loading movies:', err);
       } finally {
         setIsLoading(false);
       }

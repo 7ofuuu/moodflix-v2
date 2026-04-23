@@ -2,11 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/auth-client';
+import { logger } from '@/lib/logger';
 import type { User } from '@supabase/supabase-js';
+
+interface UserProfile {
+  id: string;
+  avatar_url: string | null;
+  full_name: string | null;
+}
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -27,7 +34,7 @@ export function useAuth() {
           setUserProfile(data);
         }
       } catch (error) {
-        console.error('Error fetching user:', error);
+        logger.error('Error fetching user:', error);
       } finally {
         setIsLoading(false);
       }
