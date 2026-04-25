@@ -50,12 +50,21 @@ jest.mock('@/components/ui/button', () => {
   return { Button };
 });
 
-jest.mock('lucide-react', () => ({
-  LogOut: () => <svg data-testid="logout-icon" />,
-  Edit2: () => <svg data-testid="edit-icon" />,
-  ChevronLeft: () => <svg data-testid="chevron-left-icon" />,
-  ChevronRight: () => <svg data-testid="chevron-right-icon" />,
-}));
+jest.mock('lucide-react', () => {
+  const LogOut = () => <svg data-testid="logout-icon" />;
+  LogOut.displayName = 'LogOut';
+  
+  const Edit2 = () => <svg data-testid="edit-icon" />;
+  Edit2.displayName = 'Edit2';
+  
+  const ChevronLeft = () => <svg data-testid="chevron-left-icon" />;
+  ChevronLeft.displayName = 'ChevronLeft';
+  
+  const ChevronRight = () => <svg data-testid="chevron-right-icon" />;
+  ChevronRight.displayName = 'ChevronRight';
+  
+  return { LogOut, Edit2, ChevronLeft, ChevronRight };
+});
 
 jest.mock('next/link', () => {
   return ({ children, href }: { children: React.ReactNode; href: string }) => (
