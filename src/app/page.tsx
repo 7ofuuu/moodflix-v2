@@ -5,8 +5,6 @@ import { QuizTransitionButton } from '@/components/ui/water-drop-transition';
 import { SplitText } from '@/components/ui/split-text';
 import { Reveal } from '@/components/ui/reveal';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { QuizLoadingScreen } from '@/components/ui/quiz-loading-screen';
 import FooterComponent from '@/components/ui/footer';
 import Navbar from '@/components/ui/navbar';
 import { LastMoodRecommendations } from '@/components/ui/last-mood-recommendations';
@@ -145,12 +143,6 @@ function HomeContent() {
   const [mood, setMood] = useState('cozy');
   const [isMoodDropdownExpanded, setIsMoodDropdownExpanded] = useState(false);
   const moodRef = useRef(mood);
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const [showLoader, setShowLoader] = useState(
-    () => searchParams.get('from') === 'quiz'
-  );
-  const [postersReady, setPostersReady] = useState(false);
 
   useEffect(() => {
     const syncMood = () => {
@@ -190,10 +182,7 @@ function HomeContent() {
         >
           {/* Animated poster grid background */}
           <div className='absolute inset-0 -z-30'>
-            <GridMotion
-              gradientColor='rgb(0 0 0 / 0.14)'
-              onPostersReady={() => setPostersReady(true)}
-            />
+            <GridMotion gradientColor='rgb(0 0 0 / 0.14)' />
           </div>
 
           {/* Layered atmospheric overlays */}
@@ -417,16 +406,6 @@ function HomeContent() {
 
       {/* Floating AI Chat */}
       <AiChat />
-
-      {showLoader && (
-        <QuizLoadingScreen
-          isReady={postersReady}
-          onDismiss={() => {
-            setShowLoader(false);
-            router.replace('/');
-          }}
-        />
-      )}
     </>
   );
 }

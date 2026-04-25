@@ -82,7 +82,7 @@ export function QuizLoadingScreen({ isReady, onDismiss }: QuizLoadingScreenProps
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3, ease: 'easeIn' }}
+          transition={{ duration: 1.0, ease: 'easeOut' }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black"
           aria-live="polite"
           aria-label="Loading your recommendations"
@@ -92,7 +92,7 @@ export function QuizLoadingScreen({ isReady, onDismiss }: QuizLoadingScreenProps
               <motion.div
                 key="dots"
                 exit={{ opacity: 0, scale: 0.4 }}
-                transition={{ duration: 0.3, ease: 'easeIn' }}
+                transition={{ duration: 0.15, ease: 'easeIn' }}
               >
                 <LoaderDots />
               </motion.div>

@@ -22,6 +22,9 @@ export function useQuizRecommendations() {
   const [source, setSource] = useState<'gemini-hybrid' | 'tmdb-fallback' | null>(null);
 
   const getRecommendations = async (mood: string, action: string) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     try {
       setIsLoading(true);
       setError(null);
@@ -30,6 +33,7 @@ export function useQuizRecommendations() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mood, action }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -54,12 +58,15 @@ export function useQuizRecommendations() {
         void saveMoodHistory(supabase, user.id, mood);
       }
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'An error occurred while fetching recommendations'
-      );
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Request timed out. Please try again.');
+      } else {
+        setError(err instanceof Error ? err.message : 'An error occurred while fetching recommendations');
+      }
       setRecommendations([]);
       setSource(null);
     } finally {
+      clearTimeout(timeoutId);
       setIsLoading(false);
     }
   };

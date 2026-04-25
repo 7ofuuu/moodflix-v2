@@ -6,6 +6,7 @@ import type { ActionType } from '@/lib/mood';
 import type { PaginatedResponse, MovieDetails } from '@/types/movie';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_CHAT_MODEL = 'gemini-2.5-flash-lite';
 const MAX_RESULTS = 8;
 
 interface ChatMessage {
@@ -14,32 +15,82 @@ interface ChatMessage {
 }
 
 const MOOD_ALIASES: Record<string, string> = {
+  // English aliases
   melancholic: 'sad',
   thrilled: 'excited',
+  action: 'excited',
+  thriller: 'excited',
+  horror: 'excited',
+  comedy: 'happy',
+  drama: 'sad',
+  romance: 'romantic',
+  adventure: 'adventurous',
+  'sci-fi': 'adventurous',
+  'science fiction': 'adventurous',
+  animation: 'cozy',
+  family: 'cozy',
+  mystery: 'scattered',
+  documentary: 'nostalgic',
+  classic: 'nostalgic',
+  // Indonesian aliases
+  sedih: 'sad',
+  melankolis: 'sad',
+  galau: 'sad',
+  menangis: 'sad',
+  bahagia: 'happy',
+  senang: 'happy',
+  gembira: 'happy',
+  lucu: 'happy',
+  seru: 'excited',
+  menegangkan: 'excited',
+  santai: 'cozy',
+  nyaman: 'cozy',
+  hangat: 'cozy',
+  romantis: 'romantic',
+  cinta: 'romantic',
+  bucin: 'romantic',
+  petualangan: 'adventurous',
+  epik: 'adventurous',
+  nostalgia: 'nostalgic',
+  kenangan: 'nostalgic',
+  jadul: 'nostalgic',
+  bingung: 'scattered',
+  random: 'scattered',
 };
 
 const ACTION_ALIASES: Record<string, ActionType> = {
+  // English
   distraction: 'distract',
   'stay in this mood': 'stay',
   'feel better': 'improve',
   'explore something different': 'explore',
+  'cheer me up': 'improve',
+  'surprise me': 'explore',
+  'something different': 'explore',
+  // Indonesian
+  'sesuai mood': 'stay',
+  'sama mood': 'stay',
+  tetap: 'stay',
+  lupain: 'distract',
+  alihkan: 'distract',
+  distraksi: 'distract',
+  'bikin semangat': 'improve',
+  'mau happy': 'improve',
+  'lebih baik': 'improve',
+  'coba yang beda': 'explore',
+  'coba lain': 'explore',
+  berbeda: 'explore',
 };
 
 function normalizeDetectedMood(mood: string | null | undefined): string | null {
-  if (!mood) {
-    return null;
-  }
-
+  if (!mood) return null;
   const candidate = mood.toLowerCase().trim();
   const mapped = MOOD_ALIASES[candidate] ?? candidate;
   return isMoodKey(mapped) ? mapped : null;
 }
 
 function normalizeDetectedAction(action: string | null | undefined): ActionType | null {
-  if (!action) {
-    return null;
-  }
-
+  if (!action) return null;
   const candidate = action.toLowerCase().trim();
   const mapped = ACTION_ALIASES[candidate] ?? candidate;
   return VALID_ACTIONS.includes(mapped as ActionType) ? (mapped as ActionType) : null;
@@ -63,20 +114,65 @@ async function fetchMoviesByMoodAction(mood: string, action: ActionType): Promis
   try {
     const sortBy = action === 'explore' ? 'vote_average.desc' : 'popularity.desc';
     const genreIds = MOOD_GENRE_MAP[mood] ?? MOOD_GENRE_MAP.cozy;
+    const page = String(Math.floor(Math.random() * 4) + 1);
 
     const data = await fetchTmdb<PaginatedResponse<MovieDetails>>('/discover/movie', {
       language: 'en-US',
-      page: '1',
+      page,
       sort_by: sortBy,
       'vote_count.gte': '150',
       with_genres: genreIds.join(','),
     });
 
-    return (data.results ?? []).slice(0, MAX_RESULTS);
+    const results = [...(data.results ?? [])].sort(() => Math.random() - 0.5);
+    return results.slice(0, MAX_RESULTS);
   } catch {
     return [];
   }
 }
+
+const SYSTEM_PROMPT_TEMPLATE = (conversationHistory: string) => `You are MoodFlix AI, a smart and friendly movie recommendation assistant inside a mood-based cinema app.
+
+CRITICAL LANGUAGE RULE: You MUST reply in the exact same language the user is writing in. If the user writes in Indonesian (Bahasa Indonesia), you MUST reply in Indonesian. If they write in English, reply in English. Never switch languages unless the user switches first.
+
+MOOD KEYS — map user input to one of these exact strings:
+- "happy"       → comedies, feel-good, cheerful, fun | ID: bahagia, senang, gembira, lucu, ceria
+- "sad"         → dramas, tearjerkers, emotional, melancholic | ID: sedih, galau, melankolis, menangis, drama
+- "excited"     → action, thriller, horror, adrenaline, intense | ID: seru, action, menegangkan, deg-degan, horor
+- "cozy"        → animation, family, slice-of-life, light | ID: santai, nyaman, hangat, cozy, ringan
+- "nostalgic"   → classics, period films, retro | ID: nostalgia, kenangan, jadul, klasik
+- "scattered"   → unfocused, indecisive, anything goes | ID: bingung, gatau, random, gabisa milih, terserah
+- "romantic"    → romance, love stories, date-night | ID: romantis, cinta, sendu, bucin
+- "adventurous" → adventure, sci-fi, epic, exploration | ID: petualangan, epik, luar angkasa, action petualangan
+
+ACTION KEYS — infer from context, use "stay" as default:
+- "stay"     → films that match the mood (DEFAULT when unclear)
+- "distract" → take mind off something | ID: alihkan pikiran, lupain, distraksi
+- "improve"  → want to feel better / uplift | ID: bikin semangat, cheering up, mau happy
+- "explore"  → want something surprising / unexpected | ID: surprise, coba yang beda, random banget
+
+WHEN TO SET ready=true — be generous and fast:
+✅ User mentions ANY mood, genre, feeling, or movie type in their message
+✅ User asks for new/different recommendations ("berikan lagi", "coba yang lain", "more movies")
+✅ User references a genre ("action", "horror", "drama", "sedih", "seru") — map it to mood key
+✅ User describes a situation that implies a mood ("habis putus", "lagi bete", "mau ketawa")
+✅ If mood is clear but action is unspecified → still ready=true, output action as "stay"
+
+WHEN TO SET ready=false — only if:
+❌ User is purely greeting with no movie intent (just "halo", "hi", "what can you do")
+❌ Request is completely unintelligible
+
+STYLE RULES:
+- Keep reply to 1-2 sentences maximum
+- Be warm, casual, and direct — skip unnecessary follow-up questions
+- If you have enough info, just confirm and go (don't ask "are you sure?")
+- Sound like a knowledgeable film-loving friend, not a form to fill out
+
+Conversation history:
+${conversationHistory}
+
+Respond ONLY with valid JSON — no markdown, no code blocks, no extra text:
+{"reply":"your response in user's language","mood":"mood_key or null","action":"action_key or null","ready":true or false}`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -90,44 +186,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'messages array is required' }, { status: 400 });
     }
 
-    // Build conversation history for Gemini
     const conversationHistory = messages
       .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
       .join('\n');
 
-    const systemPrompt = `You are MoodFlix AI, a friendly movie recommendation assistant. You help users find perfect movies based on their emotional state and preferences.
-
-Given the conversation below, respond in a warm, conversational tone and extract the user's mood and intent.
-
-Available moods: happy, sad (melancholic), excited (thrilled), cozy, nostalgic, scattered, romantic, adventurous
-Available actions: stay (match mood), distract (take mind off things), improve (feel better), explore (try something different)
-
-Conversation:
-${conversationHistory}
-
-Respond with a JSON object (no markdown):
-{
-  "reply": "Your conversational response here (1-2 sentences, warm tone)",
-  "mood": "detected_mood_key or null",
-  "action": "detected_action_key or null",
-  "ready": true/false
-}
-
-Set ready=true only when you have enough info to recommend movies (both mood and action identified).
-If still gathering info, ask a follow-up question in reply.`;
-
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
     const geminiRes = await fetch(geminiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: systemPrompt }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 300 },
+        contents: [{ parts: [{ text: SYSTEM_PROMPT_TEMPLATE(conversationHistory) }] }],
+        generationConfig: { temperature: 0.85, maxOutputTokens: 400 },
       }),
     });
 
     if (!geminiRes.ok) {
+      const errBody = await geminiRes.text();
+      logger.error('Gemini error', { status: geminiRes.status, body: errBody });
       return NextResponse.json({ error: 'AI service error' }, { status: 503 });
     }
 
@@ -137,8 +213,10 @@ If still gathering info, ask a follow-up question in reply.`;
     const jsonStr = extractFirstJsonObject(responseText);
     if (!jsonStr) {
       return NextResponse.json({
-        reply: "I'm here to help you find the perfect movie! What kind of mood are you in tonight?",
+        reply: "Cerita dong lagi pengen nonton apa, atau gimana perasaan kamu sekarang?",
         movies: [],
+        mood: null,
+        action: null,
         ready: false,
       });
     }
@@ -151,17 +229,16 @@ If still gathering info, ask a follow-up question in reply.`;
     };
 
     const normalizedMood = normalizeDetectedMood(parsed.mood);
-    const normalizedAction = normalizeDetectedAction(parsed.action);
-    const ready = Boolean(parsed.ready && normalizedMood && normalizedAction);
+    const normalizedAction = normalizeDetectedAction(parsed.action) ?? (normalizedMood ? 'stay' : null);
+    const ready = Boolean(parsed.ready && normalizedMood);
 
     let movies: MovieDetails[] = [];
-
     if (ready && normalizedMood && normalizedAction) {
       movies = await fetchMoviesByMoodAction(normalizedMood, normalizedAction);
     }
 
     return NextResponse.json({
-      reply: parsed.reply || "Tell me how you're feeling and I'll find the perfect movie!",
+      reply: parsed.reply || "Cerita dong, lagi pengen nonton film apa?",
       mood: normalizedMood,
       action: normalizedAction,
       ready,
