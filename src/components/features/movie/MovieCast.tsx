@@ -4,13 +4,13 @@ import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 
 interface CastMember {
-  id: number;
-  name: string;
-  character: string;
-  profile_path: string | null;
+  readonly id: number;
+  readonly name: string;
+  readonly character: string;
+  readonly profile_path: string | null;
 }
 
-export function MovieCast({ cast, movieId }: { cast: CastMember[], movieId: number }) {
+export function MovieCast({ cast, movieId }: { readonly cast: CastMember[], readonly movieId: number }) {
   if (!cast || cast.length === 0) return null;
 
   return (

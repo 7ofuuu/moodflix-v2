@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Bookmark, Heart, CheckCircle } from 'lucide-react';
 
 interface MovieActionsProps {
-  movieId: number;
+  readonly movieId: number;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
