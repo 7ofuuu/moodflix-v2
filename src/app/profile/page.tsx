@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
@@ -13,10 +13,11 @@ import { logger } from '@/lib/logger';
 interface HorizontalScrollSectionProps {
   title: string;
   href: string;
-  children: React.ReactNode;
+  itemCount?: number;
+  children?: React.ReactNode;
 }
 
-function HorizontalScrollSection({ title, href, children }: HorizontalScrollSectionProps) {
+function HorizontalScrollSection({ title, href, itemCount = 8, children }: HorizontalScrollSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: 'left' | 'right') => {
@@ -28,6 +29,13 @@ function HorizontalScrollSection({ title, href, children }: HorizontalScrollSect
       });
     }
   };
+
+  // Generate unique IDs for placeholder cards
+  const placeholderCards = useMemo(() => {
+    return Array.from({ length: itemCount }, (_, index) => ({
+      id: `card-${title.toLowerCase().replace(/\s+/g, '-')}-${index}`,
+    }));
+  }, [title, itemCount]);
 
   return (
     <section className='space-y-4'>
@@ -66,15 +74,14 @@ function HorizontalScrollSection({ title, href, children }: HorizontalScrollSect
         className='flex gap-4 overflow-x-auto scrollbar-hide pb-2'
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {children}
+        {children || placeholderCards.map((card) => (
+          <div
+            key={card.id}
+            className='flex-shrink-0 w-36 sm:w-40 md:w-44 aspect-[2/3] bg-slate-900/50 border border-slate-800/50 rounded-lg hover:border-slate-700/50 transition-colors'
+          />
+        ))}
       </div>
     </section>
-  );
-}
-
-function PlaceholderCard() {
-  return (
-    <div className='flex-shrink-0 w-36 sm:w-40 md:w-44 aspect-[2/3] bg-slate-900/50 border border-slate-800/50 rounded-lg hover:border-slate-700/50 transition-colors' />
   );
 }
 
@@ -241,8 +248,11 @@ export default function ProfilePage() {
           {isEditing ? (
             <div className='space-y-4'>
               <div>
-                <label className='block text-sm text-slate-300 mb-2'>Name</label>
+                <label htmlFor='fullNameInput' className='block text-sm text-slate-300 mb-2'>
+                  Name
+                </label>
                 <input
+                  id='fullNameInput'
                   type='text'
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
@@ -251,8 +261,11 @@ export default function ProfilePage() {
                 />
               </div>
               <div>
-                <label className='block text-sm text-slate-300 mb-2'>Bio</label>
+                <label htmlFor='bioInput' className='block text-sm text-slate-300 mb-2'>
+                  Bio
+                </label>
                 <textarea
+                  id='bioInput'
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   placeholder='Tell us about yourself...'
@@ -299,25 +312,13 @@ export default function ProfilePage() {
         </section>
 
         {/* Favorite Films */}
-        <HorizontalScrollSection title='Favorite Films' href='/films'>
-          {[...Array(8)].map((_, i) => (
-            <PlaceholderCard key={i} />
-          ))}
-        </HorizontalScrollSection>
+        <HorizontalScrollSection title='Favorite Films' href='/films' itemCount={8} />
 
         {/* Watched */}
-        <HorizontalScrollSection title='Watched' href='/watched'>
-          {[...Array(8)].map((_, i) => (
-            <PlaceholderCard key={i} />
-          ))}
-        </HorizontalScrollSection>
+        <HorizontalScrollSection title='Watched' href='/watched' itemCount={8} />
 
         {/* Watchlist */}
-        <HorizontalScrollSection title='Watchlist' href='/watchlist'>
-          {[...Array(8)].map((_, i) => (
-            <PlaceholderCard key={i} />
-          ))}
-        </HorizontalScrollSection>
+        <HorizontalScrollSection title='Watchlist' href='/watchlist' itemCount={8} />
       </div>
     </div>
   );
