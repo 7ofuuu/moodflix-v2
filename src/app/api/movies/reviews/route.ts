@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { fetchTmdb, validateTmdbEnv } from '@/lib/tmdb';
 import { sanitizeIntParam } from '@/lib/sanitize';
 import type { PaginatedResponse, MovieReview } from '@/types/movie';
@@ -113,7 +114,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Reviews API error:', message);
+    logger.error('Reviews API error:', message);
     return NextResponse.json({ error: 'Failed to fetch reviews' }, { status: 500 });
   }
 }
