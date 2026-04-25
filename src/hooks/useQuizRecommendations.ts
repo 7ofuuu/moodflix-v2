@@ -6,6 +6,9 @@ import {
   LAST_MOOD_STORAGE_KEY,
   LAST_MOOD_UPDATED_KEY,
 } from '@/lib/mood';
+import { supabase } from '@/lib/auth-client';
+import { saveMoodHistory } from '@/lib/mood-history';
+import { invalidateCache } from '@/lib/movie-cache';
 
 interface RecommendationResponse {
   movies: MovieDetails[];
@@ -16,9 +19,7 @@ export function useQuizRecommendations() {
   const [recommendations, setRecommendations] = useState<MovieDetails[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [source, setSource] = useState<'gemini-hybrid' | 'tmdb-fallback' | null>(
-    null
-  );
+  const [source, setSource] = useState<'gemini-hybrid' | 'tmdb-fallback' | null>(null);
 
   const getRecommendations = async (mood: string, action: string) => {
     try {
@@ -27,9 +28,7 @@ export function useQuizRecommendations() {
       setSource(null);
       const response = await fetch('/api/recommendations', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mood, action }),
       });
 
@@ -45,14 +44,14 @@ export function useQuizRecommendations() {
         window.localStorage.setItem(LAST_MOOD_STORAGE_KEY, mood);
         window.localStorage.setItem(LAST_ACTION_STORAGE_KEY, action);
         window.localStorage.setItem(LAST_MOOD_UPDATED_KEY, new Date().toISOString());
-        window.dispatchEvent(
-          new CustomEvent(LAST_MOOD_EVENT, {
-            detail: {
-              mood,
-              action,
-            },
-          })
-        );
+        window.dispatchEvent(new CustomEvent(LAST_MOOD_EVENT, { detail: { mood, action } }));
+      }
+
+      invalidateCache(mood);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        void saveMoodHistory(supabase, user.id, mood);
       }
     } catch (err) {
       setError(
@@ -67,4 +66,3 @@ export function useQuizRecommendations() {
 
   return { recommendations, isLoading, error, source, getRecommendations };
 }
-

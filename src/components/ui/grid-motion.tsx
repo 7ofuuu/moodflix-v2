@@ -1,6 +1,7 @@
 'use client';
 
 import { LAST_MOOD_EVENT, LAST_MOOD_STORAGE_KEY, normalizeMood } from '@/lib/mood';
+import { getCachedPosters, setCachedPosters } from '@/lib/movie-cache';
 import { gsap } from 'gsap';
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -20,13 +21,14 @@ interface GridMotionResponse {
 interface GridMotionProps {
   items?: GridItem[];
   gradientColor?: string;
+  onPostersReady?: () => void;
 }
 
 const ROW_COUNT = 6;
 const COLUMN_COUNT = 10;
 const TOTAL_ITEMS = ROW_COUNT * COLUMN_COUNT;
 const MAX_FEED_PAGES = 6;
-const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w780';
+const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w342';
 
 const FALLBACK_ITEMS = Array.from({ length: TOTAL_ITEMS }, (_, index) => `Movie ${index + 1}`);
 
@@ -76,7 +78,7 @@ function extractPosterUrls(data: GridMotionResponse | null, dedupeSet: Set<strin
   }
 }
 
-export default function GridMotion({ items = [], gradientColor = 'black' }: GridMotionProps) {
+export default function GridMotion({ items = [], gradientColor = 'black', onPostersReady }: GridMotionProps) {
   const rowRefs = useRef<Array<HTMLDivElement | null>>([]);
   const mouseXRef = useRef(0);
   const [posterItems, setPosterItems] = useState<string[]>([]);
@@ -111,6 +113,15 @@ export default function GridMotion({ items = [], gradientColor = 'black' }: Grid
     let cancelled = false;
 
     const loadPosters = async () => {
+      const cached = getCachedPosters(activeMood);
+      if (cached && cached.length > 0) {
+        if (!cancelled) {
+          setPosterItems(cached.slice(0, TOTAL_ITEMS));
+          onPostersReady?.();
+        }
+        return;
+      }
+
       const dedupedPosters = new Set<string>();
       let page = 1;
       let totalPages = 1;
@@ -120,7 +131,6 @@ export default function GridMotion({ items = [], gradientColor = 'black' }: Grid
         if (!data) {
           break;
         }
-
         totalPages = Math.max(1, data.totalPages ?? 1);
         extractPosterUrls(data, dedupedPosters);
         page += 1;
@@ -134,14 +144,16 @@ export default function GridMotion({ items = [], gradientColor = 'black' }: Grid
         if (!data) {
           break;
         }
-
         totalPages = Math.max(1, data.totalPages ?? 1);
         extractPosterUrls(data, dedupedPosters);
         page += 1;
       }
 
       if (!cancelled) {
-        setPosterItems(Array.from(dedupedPosters).slice(0, TOTAL_ITEMS));
+        const urls = Array.from(dedupedPosters).slice(0, TOTAL_ITEMS);
+        setPosterItems(urls);
+        setCachedPosters(activeMood, urls);
+        onPostersReady?.();
       }
     };
 

@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { MoodSelector } from '@/components/features/quiz/MoodSelector';
 import { ActionSelector } from '@/components/features/quiz/ActionSelector';
 import { MovieRecommendations } from '@/components/features/quiz/MovieRecommendations';
+import { QuizLoadingScreen } from '@/components/ui/quiz-loading-screen';
 import { useQuizRecommendations } from '@/hooks/useQuizRecommendations';
 import { isMoodKey } from '@/lib/mood';
 
@@ -17,6 +18,7 @@ function QuizPageContent() {
   const [step, setStep] = useState<QuizStep>(initialMood ? 'action' : 'mood');
   const [selectedMood, setSelectedMood] = useState<string | null>(initialMood);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const { recommendations, isLoading, error, source, getRecommendations } = useQuizRecommendations();
 
   const handleMoodNext = () => {
@@ -29,6 +31,7 @@ function QuizPageContent() {
 
   const handleActionNext = async () => {
     if (selectedMood && selectedAction) {
+      setShowLoadingOverlay(true);
       await getRecommendations(selectedMood, selectedAction);
       setStep('results');
     }
@@ -38,10 +41,17 @@ function QuizPageContent() {
     setStep('mood');
     setSelectedMood(null);
     setSelectedAction(null);
+    setShowLoadingOverlay(false);
   };
 
   return (
     <>
+      {showLoadingOverlay && (
+        <QuizLoadingScreen
+          isReady={!isLoading}
+          onDismiss={() => setShowLoadingOverlay(false)}
+        />
+      )}
       <section className='quiz-fullscreen-surface relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] min-h-screen w-screen px-4 py-12 md:px-7 md:py-16'>
         <div className='mx-auto w-full max-w-[1600px]'>
           <div className={`mx-auto w-full ${step === 'results' ? '' : 'max-w-5xl'}`}>

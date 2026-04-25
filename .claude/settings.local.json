@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\('motion:', p.dependencies?.motion ?? p.devDependencies?.motion ?? 'NOT INSTALLED'\\); console.log\\('clsx:', p.dependencies?.clsx ?? 'NOT INSTALLED'\\); console.log\\('tailwind-merge:', p.dependencies?.['tailwind-merge'] ?? 'NOT INSTALLED'\\);\")",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(npm i *)",
+      "Bash(node -e \"require\\('motion/react'\\); console.log\\('ok'\\)\")",
+      "Bash(npx jest *)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

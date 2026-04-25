@@ -89,7 +89,7 @@ export function MovieRecommendations({
           Try Another Quiz
         </Button>
         <Button asChild size='lg' className='px-8'>
-          <Link href='/#last-mood-recommendations'>Explore More</Link>
+          <Link href='/?from=quiz'>Explore More</Link>
         </Button>
       </div>
     </div>
