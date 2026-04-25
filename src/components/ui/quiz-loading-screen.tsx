@@ -61,8 +61,9 @@ function LoaderText() {
 
 export function QuizLoadingScreen({ isReady, onDismiss }: QuizLoadingScreenProps) {
   const [phase, setPhase] = useState<'dots' | 'text'>('dots');
-  const [visible, setVisible] = useState(true);
   const [canDismiss, setCanDismiss] = useState(false);
+
+  const visible = !(isReady && canDismiss);
 
   useEffect(() => {
     const phaseTimer = setTimeout(() => setPhase('text'), PHASE_TRANSITION_MS);
@@ -72,12 +73,6 @@ export function QuizLoadingScreen({ isReady, onDismiss }: QuizLoadingScreenProps
       clearTimeout(dismissTimer);
     };
   }, []);
-
-  useEffect(() => {
-    if (isReady && canDismiss) {
-      setVisible(false);
-    }
-  }, [isReady, canDismiss]);
 
   return (
     <AnimatePresence onExitComplete={onDismiss}>
