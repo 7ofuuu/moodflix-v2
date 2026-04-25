@@ -328,7 +328,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<Movi
                         </div>
                       </div>
                       <p className="text-slate-300 leading-loose text-sm md:text-base opacity-90 line-clamp-6">
-                        "{review.content}"
+                        &ldquo;{review.content}&rdquo;
                       </p>
                     </div>
                   ))}
