@@ -267,7 +267,7 @@ export default function Home() {
                   Take the Mood Quiz
                 </QuizTransitionButton>
                 <Link
-                  href='/more-movies'
+                  href='/watched-movies'
                   className='inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/6 px-7 py-3.5 text-base font-medium text-white/80 backdrop-blur-sm transition-all duration-200 hover:bg-white/10 hover:text-white hover:border-white/30'
                 >
                   Discover Movies
