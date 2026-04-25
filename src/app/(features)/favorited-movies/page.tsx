@@ -9,13 +9,19 @@ import { SplitText } from '@/components/ui/split-text';
 import { Reveal } from '@/components/ui/reveal';
 import { supabase } from '@/lib/auth-client';
 import { Loader2 } from 'lucide-react';
+import type { User } from '@supabase/supabase-js';
+import type { MovieDetails } from '@/types/movie'; // ⚠️ sesuaikan path
 
 const MOVIES_PER_PAGE = 10;
 
+type Favorite = {
+  movie_id: number;
+};
+
 export default function FavoritedMoviesPage() {
-  const [movies, setMovies] = useState<any[]>([]);
+  const [movies, setMovies] = useState<MovieDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -44,21 +50,36 @@ export default function FavoritedMoviesPage() {
         return;
       }
 
-      const moviePromises = favorites.map(async (fav) => {
-        const res = await fetch(
-          `https://api.themoviedb.org/3/movie/${fav.movie_id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_TOKEN}`,
-            },
+      const moviePromises = (favorites as Favorite[]).map(async (fav) => {
+        try {
+          const res = await fetch(
+            `https://api.themoviedb.org/3/movie/${fav.movie_id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_TOKEN}`,
+              },
+            }
+          );
+
+          if (!res.ok) {
+            throw new Error('Failed to fetch movie');
           }
-        );
-        return res.json();
+
+          return (await res.json()) as MovieDetails;
+        } catch (err) {
+          console.error('Error fetching movie:', err);
+          return null;
+        }
       });
 
       const moviesData = await Promise.all(moviePromises);
 
-      setMovies(moviesData);
+      // filter null kalau ada fetch gagal
+      const validMovies = moviesData.filter(
+        (movie): movie is MovieDetails => movie !== null
+      );
+
+      setMovies(validMovies);
       setIsLoading(false);
     }
 
@@ -92,6 +113,7 @@ export default function FavoritedMoviesPage() {
           </p>
         </div>
 
+        {/* CONTENT */}
         {!user ? (
           <div className='flex items-center justify-center h-[40vh] text-center'>
             <p className='text-red-400'>You must be logged in</p>
