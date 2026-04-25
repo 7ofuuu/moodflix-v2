@@ -3,6 +3,7 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MovieDetails } from "@/types/movie";
 import { GENRES } from '@/lib/constants';
@@ -133,13 +134,9 @@ export function MovieCard({ movie }: MovieCardProps) {
         </CardContent>
         <CardFooter>
           <Button className="w-full" asChild>
-            <a
-              href={`https://www.themoviedb.org/movie/${movie.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <Link href={`/movie/${movie.id}`}>
               View Details
-            </a>
+            </Link>
           </Button>
         </CardFooter>
       </Card>

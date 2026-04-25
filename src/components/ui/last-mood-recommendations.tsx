@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Star } from 'lucide-react';
 import { MovieDetails } from '@/types/movie';
 import { GENRES } from '@/lib/constants';
+import Link from 'next/link';
 import {
   LAST_MOOD_EVENT,
   LAST_MOOD_STORAGE_KEY,
@@ -434,14 +435,12 @@ export function LastMoodRecommendations() {
               </p>
 
               <div className='mt-5'>
-                <a
-                  href={`https://www.themoviedb.org/movie/${activeMovie.id}`}
-                  target='_blank'
-                  rel='noopener noreferrer'
+                <Link
+                  href={`/movie/${activeMovie.id}`}
                   className='inline-flex items-center rounded-full border border-white/18 bg-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white/80 transition-colors hover:bg-white/14 hover:text-white'
                 >
-                  Film details on TMDB
-                </a>
+                  View Details
+                </Link>
               </div>
             </div>
           )}
