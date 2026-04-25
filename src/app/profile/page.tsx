@@ -17,7 +17,7 @@ interface HorizontalScrollSectionProps {
   children?: React.ReactNode;
 }
 
-function HorizontalScrollSection({ title, href, itemCount = 8, children }: HorizontalScrollSectionProps) {
+function HorizontalScrollSection({ title, href, itemCount = 8, children }: Readonly<HorizontalScrollSectionProps>) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: 'left' | 'right') => {
@@ -33,7 +33,7 @@ function HorizontalScrollSection({ title, href, itemCount = 8, children }: Horiz
   // Generate unique IDs for placeholder cards
   const placeholderCards = useMemo(() => {
     return Array.from({ length: itemCount }, (_, index) => ({
-      id: `card-${title.toLowerCase().replace(/\s+/g, '-')}-${index}`,
+      id: `card-${title.toLowerCase().replaceAll(/\s+/g, '-')}-${index}`,
     }));
   }, [title, itemCount]);
 
@@ -160,7 +160,7 @@ export default function ProfilePage() {
       setSuccessMessage('Profile updated successfully');
       setIsEditing(false);
       setTimeout(() => {
-        window.location.reload();
+        globalThis.location.reload();
       }, 1500);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update profile';
