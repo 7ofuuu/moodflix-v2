@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { useRouter } from 'next/navigation';
 
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
@@ -33,19 +32,23 @@ jest.mock('@/lib/auth-client', () => ({
   },
 }));
 
-jest.mock('@/components/common/avatar', () => ({
-  Avatar: ({ avatarUrl, fullName }: { avatarUrl?: string; fullName?: string }) => (
+jest.mock('@/components/common/avatar', () => {
+  const Avatar = ({ fullName }: { avatarUrl?: string; fullName?: string }) => (
     <div data-testid="avatar">{fullName || 'Avatar'}</div>
-  ),
-}));
+  );
+  Avatar.displayName = 'Avatar';
+  return { Avatar };
+});
 
-jest.mock('@/components/ui/button', () => ({
-  Button: ({ children, onClick, disabled }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean }) => (
+jest.mock('@/components/ui/button', () => {
+  const Button = ({ children, onClick, disabled }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean }) => (
     <button onClick={onClick} disabled={disabled}>
       {children}
     </button>
-  ),
-}));
+  );
+  Button.displayName = 'Button';
+  return { Button };
+});
 
 jest.mock('lucide-react', () => ({
   LogOut: () => <svg data-testid="logout-icon" />,
@@ -167,7 +170,7 @@ describe('Profile - Favorite Films Section', () => {
   });
 
   it('renders carousel with proper styling classes', () => {
-    const { container } = render(<FavoriteFilmsSection />);
+    render(<FavoriteFilmsSection />);
     const carousel = screen.getByTestId('favorite-films-carousel');
     expect(carousel).toHaveClass('flex', 'gap-4', 'overflow-x-auto');
   });
