@@ -1,12 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { Camera, Mesh, Plane, Program, Renderer, Texture, Transform } from 'ogl';
+import type { OGLRenderingContext } from 'ogl';
 import { useEffect, useRef } from 'react';
 
-function debounce(func: (...args: any[]) => void, wait: number) {
+function debounce(func: (...args: unknown[]) => void, wait: number) {
   let timeout: ReturnType<typeof setTimeout>;
-  return function (this: unknown, ...args: any[]) {
+  return function (this: unknown, ...args: unknown[]) {
     clearTimeout(timeout);
     timeout = setTimeout(() => func.apply(this, args), wait);
   };
@@ -16,17 +16,18 @@ function lerp(p1: number, p2: number, t: number) {
   return p1 + (p2 - p1) * t;
 }
 
-function autoBind(instance: any) {
-  const proto = Object.getPrototypeOf(instance);
+function autoBind(instance: object): void {
+  const rec = instance as Record<string, unknown>;
+  const proto = Object.getPrototypeOf(instance) as Record<string, unknown>;
   Object.getOwnPropertyNames(proto).forEach(key => {
-    if (key !== 'constructor' && typeof instance[key] === 'function') {
-      instance[key] = instance[key].bind(instance);
+    if (key !== 'constructor' && typeof rec[key] === 'function') {
+      rec[key] = (rec[key] as (...args: unknown[]) => unknown).bind(instance);
     }
   });
 }
 
 function createTextTexture(
-  gl: WebGLRenderingContext,
+  gl: OGLRenderingContext,
   text: string,
   font = 'bold 30px monospace',
   color = 'black'
@@ -45,19 +46,19 @@ function createTextTexture(
   context.textAlign = 'center';
   context.clearRect(0, 0, canvas.width, canvas.height);
   context.fillText(text, canvas.width / 2, canvas.height / 2);
-  const texture = new Texture(gl as any, { generateMipmaps: false });
+  const texture = new Texture(gl, { generateMipmaps: false });
   texture.image = canvas;
   return { texture, width: canvas.width, height: canvas.height };
 }
 
 class Title {
-  gl: WebGLRenderingContext;
-  plane: any;
-  renderer: any;
+  gl: OGLRenderingContext;
+  plane: Mesh;
+  renderer: Renderer;
   text: string;
   textColor: string;
   font: string;
-  mesh!: any;
+  mesh!: Mesh;
 
   constructor({
     gl,
@@ -67,9 +68,9 @@ class Title {
     textColor = '#545050',
     font = '30px sans-serif',
   }: {
-    gl: WebGLRenderingContext;
-    plane: any;
-    renderer: any;
+    gl: OGLRenderingContext;
+    plane: Mesh;
+    renderer: Renderer;
     text: string;
     textColor?: string;
     font?: string;
@@ -91,8 +92,8 @@ class Title {
       this.font,
       this.textColor
     );
-    const geometry = new Plane(this.gl as any);
-    const program = new Program(this.gl as any, {
+    const geometry = new Plane(this.gl);
+    const program = new Program(this.gl, {
       vertex: `
         attribute vec3 position;
         attribute vec2 uv;
@@ -117,7 +118,7 @@ class Title {
       uniforms: { tMap: { value: texture } },
       transparent: true,
     });
-    this.mesh = new Mesh(this.gl as any, { geometry, program });
+    this.mesh = new Mesh(this.gl, { geometry, program });
     const aspect = width / height;
     const textHeight = this.plane.scale.y * 0.15;
     const textWidth = textHeight * aspect;
@@ -129,13 +130,13 @@ class Title {
 
 class Media {
   extra = 0;
-  geometry: any;
-  gl: WebGLRenderingContext;
+  geometry: Plane;
+  gl: OGLRenderingContext;
   image: string;
   index: number;
   length: number;
-  renderer: any;
-  scene: any;
+  renderer: Renderer;
+  scene: Transform;
   screen: { width: number; height: number };
   text: string;
   viewport: { width: number; height: number };
@@ -145,8 +146,8 @@ class Media {
   font: string;
   posterWidthPx?: number;
   posterHeightPx?: number;
-  program!: any;
-  plane!: any;
+  program!: Program;
+  plane!: Mesh;
   title!: Title;
   scale = 1;
   width = 0;
@@ -175,13 +176,13 @@ class Media {
     posterWidthPx,
     posterHeightPx,
   }: {
-    geometry: any;
-    gl: WebGLRenderingContext;
+    geometry: Plane;
+    gl: OGLRenderingContext;
     image: string;
     index: number;
     length: number;
-    renderer: any;
-    scene: any;
+    renderer: Renderer;
+    scene: Transform;
     screen: { width: number; height: number };
     text: string;
     viewport: { width: number; height: number };
@@ -215,8 +216,8 @@ class Media {
   }
 
   createShader() {
-    const texture = new Texture(this.gl as any, { generateMipmaps: true });
-    this.program = new Program(this.gl as any, {
+    const texture = new Texture(this.gl, { generateMipmaps: true });
+    this.program = new Program(this.gl, {
       depthTest: false,
       depthWrite: false,
       vertex: `
@@ -284,7 +285,7 @@ class Media {
   }
 
   createMesh() {
-    this.plane = new Mesh(this.gl as any, {
+    this.plane = new Mesh(this.gl, {
       geometry: this.geometry,
       program: this.program,
     });
@@ -369,14 +370,14 @@ class App {
   container: HTMLElement;
   scrollSpeed: number;
   scroll: { ease: number; current: number; target: number; last: number; position?: number };
-  onCheckDebounce: (...args: any[]) => void;
+  onCheckDebounce: (...args: unknown[]) => void;
   onActiveIndexChange?: (index: number) => void;
   onInteractionChange?: (isInteracting: boolean) => void;
   lastActiveIndex = -1;
   interactionTimeout: ReturnType<typeof setTimeout> | null = null;
   lastWheelTime = 0;
   renderer!: Renderer;
-  gl!: WebGLRenderingContext;
+  gl!: OGLRenderingContext;
   camera!: Camera;
   scene!: Transform;
   screen!: { width: number; height: number };
@@ -469,13 +470,13 @@ class App {
       antialias: true,
       dpr: Math.min(window.devicePixelRatio || 1, 2),
     });
-    this.gl = this.renderer.gl as unknown as WebGLRenderingContext;
-    (this.renderer.gl as any).clearColor(0, 0, 0, 0);
+    this.gl = this.renderer.gl;
+    this.renderer.gl.clearColor(0, 0, 0, 0);
     this.container.appendChild(this.renderer.gl.canvas);
   }
 
   createCamera() {
-    this.camera = new Camera(this.renderer.gl as any);
+    this.camera = new Camera(this.renderer.gl);
     this.camera.fov = 45;
     this.camera.position.z = 20;
   }
@@ -485,7 +486,7 @@ class App {
   }
 
   createGeometry() {
-    this.planeGeometry = new Plane(this.renderer.gl as any, {
+    this.planeGeometry = new Plane(this.renderer.gl, {
       heightSegments: 50,
       widthSegments: 100,
     });
@@ -571,7 +572,8 @@ class App {
     }
     this.lastWheelTime = now;
 
-    const delta = e.deltaY || (e as any).wheelDelta || (e as any).detail;
+    type LegacyWheelEvent = WheelEvent & { wheelDelta?: number; detail?: number };
+    const delta = e.deltaY || (e as LegacyWheelEvent).wheelDelta || (e as LegacyWheelEvent).detail || 0;
     const direction = delta > 0 ? 1 : -1;
     const itemWidth = this.medias?.[0]?.width ?? Math.max(this.scrollSpeed, 1);
     this.scroll.target += direction * itemWidth;
@@ -597,7 +599,7 @@ class App {
     });
     const fov = (this.camera.fov * Math.PI) / 180;
     const height = 2 * Math.tan(fov / 2) * this.camera.position.z;
-    const width = height * (this.camera as any).aspect;
+    const width = height * this.camera.aspect;
     this.viewport = { width, height };
     if (this.medias) {
       this.medias.forEach(media =>

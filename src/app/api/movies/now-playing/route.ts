@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { fetchTmdb, validateTmdbEnv } from '@/lib/tmdb';
 import { sanitizeIntParam } from '@/lib/sanitize';
 import type { PaginatedResponse, MovieDetails } from '@/types/movie';
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Now playing feed error:', message);
+    logger.error('Now playing feed error:', message);
     return NextResponse.json({ error: 'Failed to fetch now playing feed' }, { status: 500 });
   }
 }

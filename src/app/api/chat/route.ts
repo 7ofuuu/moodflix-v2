@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { MOOD_GENRE_MAP, VALID_ACTIONS, isMoodKey } from '@/lib/mood';
 import { fetchTmdb } from '@/lib/tmdb';
 import type { ActionType } from '@/lib/mood';
@@ -167,7 +168,7 @@ If still gathering info, ask a follow-up question in reply.`;
       movies,
     });
   } catch (error) {
-    console.error('Chat API error:', error);
+    logger.error('Chat API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

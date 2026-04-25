@@ -37,6 +37,8 @@ export function MoodPicksDropdown({ mood, isOpen }: MoodPicksDropdownProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [initialCount, setInitialCount] = useState(0);
   const loadedMoodRef = useRef<string | null>(null);
 
   const moodLabel = MOOD_LABELS[mood] ?? mood;
@@ -69,7 +71,9 @@ export function MoodPicksDropdown({ mood, isOpen }: MoodPicksDropdownProps) {
           return Array.from(deduped.values()).slice(0, MAX_MOOD_COLLECTION_MOVIES);
         });
       } else {
-        setMovies((data.movies ?? []).slice(0, MAX_MOOD_COLLECTION_MOVIES));
+        const firstPage = (data.movies ?? []).slice(0, MAX_MOOD_COLLECTION_MOVIES);
+        setMovies(firstPage);
+        setInitialCount(firstPage.length);
       }
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Failed to load mood picks');
@@ -94,6 +98,7 @@ export function MoodPicksDropdown({ mood, isOpen }: MoodPicksDropdownProps) {
     loadedMoodRef.current = mood;
     setCurrentPage(0);
     setTotalPages(1);
+    setIsExpanded(false);
     void loadPage(1, false, mood);
   }, [isOpen, loadPage, mood, movies.length]);
 
@@ -131,7 +136,7 @@ export function MoodPicksDropdown({ mood, isOpen }: MoodPicksDropdownProps) {
 
         {!isLoading && movies.length > 0 && (
           <div className='grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'>
-            {movies.map(movie => (
+            {(isExpanded ? movies : movies.slice(0, initialCount || movies.length)).map(movie => (
               <MovieCard key={movie.id} movie={movie} />
             ))}
           </div>
@@ -141,19 +146,31 @@ export function MoodPicksDropdown({ mood, isOpen }: MoodPicksDropdownProps) {
           <p className='py-8 text-sm text-white/60'>No movies available for this mood yet.</p>
         )}
 
-        {canLoadMore && (
-          <div className='pt-8 text-center'>
-            <button
-              type='button'
-              onClick={event => {
-                event.preventDefault();
-                event.stopPropagation();
-                void loadPage(currentPage + 1, true, mood);
-              }}
-              className='inline-flex items-center rounded-full border border-white/18 bg-white/6 px-6 py-2.5 text-sm font-medium text-white/75 transition-all hover:bg-white/12 hover:text-white'
-            >
-              {isLoadingMore ? 'Loading…' : 'Load more picks'}
-            </button>
+        {!isLoading && (canLoadMore || (isExpanded && movies.length > initialCount)) && (
+          <div className='pt-8 flex items-center justify-center gap-3'>
+            {canLoadMore && (
+              <button
+                type='button'
+                onClick={event => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setIsExpanded(true);
+                  void loadPage(currentPage + 1, true, mood);
+                }}
+                className='inline-flex items-center rounded-full border border-white/18 bg-white/6 px-6 py-2.5 text-sm font-medium text-white/75 transition-all hover:bg-white/12 hover:text-white'
+              >
+                {isLoadingMore ? 'Loading…' : 'Show more'}
+              </button>
+            )}
+            {isExpanded && movies.length > initialCount && (
+              <button
+                type='button'
+                onClick={() => setIsExpanded(false)}
+                className='inline-flex items-center rounded-full border border-white/18 bg-white/6 px-6 py-2.5 text-sm font-medium text-white/75 transition-all hover:bg-white/12 hover:text-white'
+              >
+                Show less
+              </button>
+            )}
           </div>
         )}
       </div>

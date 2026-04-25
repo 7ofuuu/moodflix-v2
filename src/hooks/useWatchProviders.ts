@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 import { WatchProvider } from '@/types/movie';
 
 interface WatchProvidersResult {
@@ -27,7 +28,7 @@ export function useWatchProviders(): WatchProvidersResult {
         setError(null);
       } catch (err) {
         setError('Failed to load watch providers');
-        console.error('Error loading watch providers:', err);
+        logger.error('Error loading watch providers:', err);
       } finally {
         setIsLoading(false);
       }
