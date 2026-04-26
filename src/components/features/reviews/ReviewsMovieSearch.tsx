@@ -146,11 +146,11 @@ export function ReviewsMovieSearch({
 
       {isOpen && activeSuggestions.length > 0 && (
         <div className='absolute top-full z-50 mt-2 w-full rounded-xl border border-white/10 bg-zinc-900 shadow-2xl'>
-          <ul id={listboxId} role='listbox'>
+          <ul id={listboxId}>
             {activeSuggestions.map(movie => {
               const year = movie.release_date ? movie.release_date.slice(0, 4) : '';
               return (
-                <li key={movie.id} role='option' aria-selected={false}>
+                <li key={movie.id}>
                   <button
                     className='flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-white/[0.06]'
                     onClick={() => handleSelect(movie)}

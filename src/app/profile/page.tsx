@@ -11,12 +11,15 @@ import { LogOut, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { useFavorites } from '@/hooks/useFavorites';
 import Image from 'next/image';
-import { useWatchedMovies } from '@/hooks/useWatchedMovies'; //
+import { useWatchedMovies } from '@/hooks/useWatchedMovies';
+
+const WATCHED_SKELETON_KEYS = ['sk-w-0', 'sk-w-1', 'sk-w-2', 'sk-w-3', 'sk-w-4'];
+
 interface HorizontalScrollSectionProps {
-  title: string;
-  href: string;
-  itemCount?: number;
-  children?: React.ReactNode;
+  readonly title: string;
+  readonly href: string;
+  readonly itemCount?: number;
+  readonly children?: React.ReactNode;
 }
 
 interface Movie {
@@ -384,15 +387,8 @@ export default function ProfilePage() {
           href='/watched-movies'
           itemCount={8}
         >
-          {!isLoaded
-            ? // Placeholder skeleton while loading
-              Array.from({ length: 5 }).map((_, i) => (
-                <div
-                  key={i}
-                  className='shrink-0 w-32 md:w-36 aspect-2/3 bg-slate-900/50 animate-pulse rounded-lg'
-                />
-              ))
-            : watchedPreview.map(movie => (
+          {isLoaded
+            ? watchedPreview.map(movie => (
                 <Link
                   key={movie.id}
                   href={`/movie/${movie.id}`}
@@ -401,11 +397,18 @@ export default function ProfilePage() {
                   <Image
                     src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                     alt={movie.title}
+                    width={144}
+                    height={216}
                     className='w-32 md:w-36 aspect-2/3 object-cover rounded-lg border border-slate-800 group-hover:border-amber-400/50 transition-all shadow-lg'
                   />
-                  {/* Optional: Subtle overlay on hover */}
                   <div className='absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg' />
                 </Link>
+              ))
+            : WATCHED_SKELETON_KEYS.map(key => (
+                <div
+                  key={key}
+                  className='shrink-0 w-32 md:w-36 aspect-2/3 bg-slate-900/50 animate-pulse rounded-lg'
+                />
               ))}
         </HorizontalScrollSection>
 

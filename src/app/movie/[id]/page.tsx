@@ -105,7 +105,7 @@ async function getMovieDetails(id: string): Promise<MovieDetailsData | null> {
   return res.json();
 }
 
-export default async function MovieDetailPage({ params }: { params: Promise<MovieDetailParams> | MovieDetailParams }) {
+export default async function MovieDetailPage({ params }: Readonly<{ params: Promise<MovieDetailParams> | MovieDetailParams }>) {
   const resolvedParams = await params;
   const movie = await getMovieDetails(resolvedParams.id);
 

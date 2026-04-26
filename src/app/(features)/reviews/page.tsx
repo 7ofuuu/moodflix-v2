@@ -105,7 +105,7 @@ export default function ReviewsPage() {
 
         {!isLoading && !error && totalResults > 0 && (
           <p className='mb-4 text-sm text-white/40'>
-            {totalResults} review{totalResults !== 1 ? 's' : ''} found
+            {totalResults} review{totalResults === 1 ? '' : 's'} found
           </p>
         )}
 

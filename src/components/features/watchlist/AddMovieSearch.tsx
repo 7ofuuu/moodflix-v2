@@ -7,8 +7,8 @@ import { Search, X, Loader2 } from "lucide-react";
 import Image from "next/image";
 
 interface AddMovieSearchProps {
-  onAdd: (movie: MovieDetails) => void;
-  isInWatchlist: (id: number) => boolean;
+  readonly onAdd: (movie: MovieDetails) => void;
+  readonly isInWatchlist: (id: number) => boolean;
 }
 
 export function AddMovieSearch({ onAdd, isInWatchlist }: AddMovieSearchProps) {
@@ -95,12 +95,9 @@ export function AddMovieSearch({ onAdd, isInWatchlist }: AddMovieSearchProps) {
 
               <div className="space-y-2 p-4">
                 {results.map((movie) => (
-                  <div 
-                    key={movie.id} 
-                    className="flex items-center gap-4 p-2 rounded-lg hover:bg-slate-800 cursor-pointer transition-colors"
-                    onClick={() => {
-                      if (!isInWatchlist(movie.id)) handleAdd(movie);
-                    }}
+                  <div
+                    key={movie.id}
+                    className="flex items-center gap-4 p-2 rounded-lg hover:bg-slate-800 transition-colors"
                   >
                     <div className="h-16 w-12 bg-slate-800 rounded overflow-hidden flex-shrink-0 relative">
                       {movie.poster_path ? (
@@ -120,10 +117,13 @@ export function AddMovieSearch({ onAdd, isInWatchlist }: AddMovieSearchProps) {
                         {movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'} • ★ {movie.vote_average?.toFixed(1)}
                       </p>
                     </div>
-                    <Button 
-                      variant={isInWatchlist(movie.id) ? "outline" : "secondary"} 
+                    <Button
+                      variant={isInWatchlist(movie.id) ? "outline" : "secondary"}
                       size="sm"
                       disabled={isInWatchlist(movie.id)}
+                      onClick={() => {
+                        if (!isInWatchlist(movie.id)) handleAdd(movie);
+                      }}
                     >
                       {isInWatchlist(movie.id) ? 'Added' : 'Add'}
                     </Button>

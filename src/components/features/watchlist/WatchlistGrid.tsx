@@ -3,8 +3,8 @@ import { WatchlistCard } from "./WatchlistCard";
 import { Film } from "lucide-react";
 
 interface WatchlistGridProps {
-  movies: MovieDetails[];
-  onRemove: (id: number) => void;
+  readonly movies: MovieDetails[];
+  readonly onRemove: (id: number) => void;
 }
 
 export function WatchlistGrid({ movies, onRemove }: WatchlistGridProps) {
