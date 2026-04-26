@@ -2,6 +2,7 @@
 
 import { LAST_MOOD_EVENT, LAST_MOOD_STORAGE_KEY, normalizeMood } from '@/lib/mood';
 import { getCachedPosters, setCachedPosters } from '@/lib/movie-cache';
+import { getLastRecommendations } from '@/lib/last-recommendations';
 import { gsap } from 'gsap';
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -78,11 +79,28 @@ function extractPosterUrls(data: GridMotionResponse | null, dedupeSet: Set<strin
   }
 }
 
+function prependStoredRecommendationPosters(mood: string, dedupeSet: Set<string>) {
+  const stored = getLastRecommendations();
+
+  if (!stored || normalizeMood(stored.mood) !== mood) {
+    return;
+  }
+
+  for (const movie of stored.movies) {
+    if (!movie.poster_path) {
+      continue;
+    }
+
+    dedupeSet.add(`${TMDB_IMAGE_BASE_URL}${movie.poster_path}`);
+  }
+}
+
 export default function GridMotion({ items = [], gradientColor = 'black', onPostersReady }: GridMotionProps) {
   const rowRefs = useRef<Array<HTMLDivElement | null>>([]);
   const mouseXRef = useRef(0);
   const [posterItems, setPosterItems] = useState<string[]>([]);
   const [activeMood, setActiveMood] = useState('cozy');
+  const [refreshTick, setRefreshTick] = useState(0);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -92,6 +110,7 @@ export default function GridMotion({ items = [], gradientColor = 'black', onPost
     const syncMoodFromStorage = () => {
       const nextMood = normalizeMood(window.localStorage.getItem(LAST_MOOD_STORAGE_KEY));
       setActiveMood(nextMood);
+      setRefreshTick(previous => previous + 1);
     };
 
     syncMoodFromStorage();
@@ -113,16 +132,24 @@ export default function GridMotion({ items = [], gradientColor = 'black', onPost
     let cancelled = false;
 
     const loadPosters = async () => {
+      const dedupedPosters = new Set<string>();
+      prependStoredRecommendationPosters(activeMood, dedupedPosters);
+
       const cached = getCachedPosters(activeMood);
       if (cached && cached.length > 0) {
-        if (!cancelled) {
-          setPosterItems(cached.slice(0, TOTAL_ITEMS));
-          onPostersReady?.();
+        for (const posterUrl of cached) {
+          dedupedPosters.add(posterUrl);
         }
-        return;
+
+        if (dedupedPosters.size >= TOTAL_ITEMS) {
+          if (!cancelled) {
+            setPosterItems(Array.from(dedupedPosters).slice(0, TOTAL_ITEMS));
+            onPostersReady?.();
+          }
+          return;
+        }
       }
 
-      const dedupedPosters = new Set<string>();
       let page = 1;
       let totalPages = 1;
 
@@ -162,7 +189,7 @@ export default function GridMotion({ items = [], gradientColor = 'black', onPost
     return () => {
       cancelled = true;
     };
-  }, [activeMood, items.length, onPostersReady]);
+  }, [activeMood, items.length, onPostersReady, refreshTick]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {

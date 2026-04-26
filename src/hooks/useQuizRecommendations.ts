@@ -6,6 +6,7 @@ import {
   LAST_MOOD_STORAGE_KEY,
   LAST_MOOD_UPDATED_KEY,
 } from '@/lib/mood';
+import { saveLastRecommendations } from '@/lib/last-recommendations';
 import { supabase } from '@/lib/auth-client';
 import { saveMoodHistory } from '@/lib/mood-history';
 import { invalidateCache } from '@/lib/movie-cache';
@@ -45,10 +46,19 @@ export function useQuizRecommendations() {
       setSource(data.source ?? null);
 
       if (typeof globalThis.window !== 'undefined') {
-        globalThis.window.localStorage.setItem(LAST_MOOD_STORAGE_KEY, mood);
-        globalThis.window.localStorage.setItem(LAST_ACTION_STORAGE_KEY, action);
-        globalThis.window.localStorage.setItem(LAST_MOOD_UPDATED_KEY, new Date().toISOString());
-        globalThis.window.dispatchEvent(new CustomEvent(LAST_MOOD_EVENT, { detail: { mood, action } }));
+        if ((data.movies ?? []).length > 0) {
+          saveLastRecommendations({
+            mood,
+            action,
+            movies: data.movies,
+            source: 'quiz',
+          });
+        } else {
+          globalThis.window.localStorage.setItem(LAST_MOOD_STORAGE_KEY, mood);
+          globalThis.window.localStorage.setItem(LAST_ACTION_STORAGE_KEY, action);
+          globalThis.window.localStorage.setItem(LAST_MOOD_UPDATED_KEY, new Date().toISOString());
+          globalThis.window.dispatchEvent(new CustomEvent(LAST_MOOD_EVENT, { detail: { mood, action } }));
+        }
       }
 
       invalidateCache(mood);
