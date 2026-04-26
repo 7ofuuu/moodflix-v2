@@ -6,7 +6,7 @@ import { MovieActions } from '@/components/features/movie/MovieActions';
 import { MovieCast } from '@/components/features/movie/MovieCast';
 
 interface MovieDetailParams {
-  id: string;
+  readonly id: string;
 }
 
 interface CastMember {
@@ -116,7 +116,8 @@ export default async function MovieDetailPage({ params }: { params: Promise<Movi
   const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A';
   const hours = Math.floor(movie.runtime / 60);
   const minutes = movie.runtime % 60;
-  const formattedRuntime = `${hours > 0 ? `${hours}h ` : ''}${minutes}m`;
+  const hoursDisplay = hours > 0 ? `${hours}h ` : '';
+  const formattedRuntime = `${hoursDisplay}${minutes}m`;
 
   const topCast = movie.credits?.cast?.slice(0, 9) || [];
   const trailer = movie.videos?.results?.find(v => v.site === 'YouTube' && v.type === 'Trailer');
@@ -311,8 +312,8 @@ export default async function MovieDetailPage({ params }: { params: Promise<Movi
              
              {topReviews.length > 0 ? (
                 <div className="grid gap-6">
-                  {topReviews.map((review, idx) => (
-                    <div key={`review-${idx}`} className="bg-slate-900/50 backdrop-blur-sm rounded-2xl p-6 md:p-8 border border-white/5 hover:border-white/10 transition-colors shadow-lg">
+                  {topReviews.map((review) => (
+                    <div key={`review-${review.id}`} className="bg-slate-900/50 backdrop-blur-sm rounded-2xl p-6 md:p-8 border border-white/5 hover:border-white/10 transition-colors shadow-lg">
                       <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 bg-amber-500 text-amber-950 rounded-full flex items-center justify-center font-black text-xl shadow-md">

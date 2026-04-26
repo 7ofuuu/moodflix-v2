@@ -11,9 +11,9 @@ import { LogOut, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { logger } from '@/lib/logger';
 
 interface HorizontalScrollSectionProps {
-  title: string;
-  href: string;
-  children: React.ReactNode;
+  readonly title: string;
+  readonly href: string;
+  readonly children: React.ReactNode;
 }
 
 function HorizontalScrollSection({ title, href, children }: HorizontalScrollSectionProps) {
@@ -153,7 +153,7 @@ export default function ProfilePage() {
       setSuccessMessage('Profile updated successfully');
       setIsEditing(false);
       setTimeout(() => {
-        window.location.reload();
+        globalThis.location.reload();
       }, 1500);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update profile';
@@ -241,8 +241,9 @@ export default function ProfilePage() {
           {isEditing ? (
             <div className='space-y-4'>
               <div>
-                <label className='block text-sm text-slate-300 mb-2'>Name</label>
+                <label htmlFor='profile-name' className='block text-sm text-slate-300 mb-2'>Name</label>
                 <input
+                  id='profile-name'
                   type='text'
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
@@ -251,8 +252,9 @@ export default function ProfilePage() {
                 />
               </div>
               <div>
-                <label className='block text-sm text-slate-300 mb-2'>Bio</label>
+                <label htmlFor='profile-bio' className='block text-sm text-slate-300 mb-2'>Bio</label>
                 <textarea
+                  id='profile-bio'
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   placeholder='Tell us about yourself...'
@@ -300,22 +302,22 @@ export default function ProfilePage() {
 
         {/* Favorite Films */}
         <HorizontalScrollSection title='Favorite Films' href='/films'>
-          {[...Array(8)].map((_, i) => (
-            <PlaceholderCard key={i} />
+          {[...new Array(8)].map((_, i) => (
+            <PlaceholderCard key={`favorite-${i}`} />
           ))}
         </HorizontalScrollSection>
 
         {/* Watched */}
         <HorizontalScrollSection title='Watched' href='/watched'>
-          {[...Array(8)].map((_, i) => (
-            <PlaceholderCard key={i} />
+          {[...new Array(8)].map((_, i) => (
+            <PlaceholderCard key={`watched-${i}`} />
           ))}
         </HorizontalScrollSection>
 
         {/* Watchlist */}
         <HorizontalScrollSection title='Watchlist' href='/watchlist'>
-          {[...Array(8)].map((_, i) => (
-            <PlaceholderCard key={i} />
+          {[...new Array(8)].map((_, i) => (
+            <PlaceholderCard key={`watchlist-${i}`} />
           ))}
         </HorizontalScrollSection>
       </div>
