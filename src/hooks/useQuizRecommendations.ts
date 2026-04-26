@@ -44,11 +44,11 @@ export function useQuizRecommendations() {
       setRecommendations(data.movies || []);
       setSource(data.source ?? null);
 
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(LAST_MOOD_STORAGE_KEY, mood);
-        window.localStorage.setItem(LAST_ACTION_STORAGE_KEY, action);
-        window.localStorage.setItem(LAST_MOOD_UPDATED_KEY, new Date().toISOString());
-        window.dispatchEvent(new CustomEvent(LAST_MOOD_EVENT, { detail: { mood, action } }));
+      if (typeof globalThis.window !== 'undefined') {
+        globalThis.window.localStorage.setItem(LAST_MOOD_STORAGE_KEY, mood);
+        globalThis.window.localStorage.setItem(LAST_ACTION_STORAGE_KEY, action);
+        globalThis.window.localStorage.setItem(LAST_MOOD_UPDATED_KEY, new Date().toISOString());
+        globalThis.window.dispatchEvent(new CustomEvent(LAST_MOOD_EVENT, { detail: { mood, action } }));
       }
 
       invalidateCache(mood);

@@ -62,9 +62,9 @@ export function useAuth() {
             setSessionExpiry(session.expires_at);
           }
           const mood = await fetchLastMood(supabase, session.user.id);
-          if (mood !== null && typeof window !== 'undefined') {
-            window.localStorage.setItem(LAST_MOOD_STORAGE_KEY, mood);
-            window.dispatchEvent(new CustomEvent(LAST_MOOD_EVENT, { detail: { mood } }));
+          if (mood !== null && typeof globalThis.window !== 'undefined') {
+            globalThis.window.localStorage.setItem(LAST_MOOD_STORAGE_KEY, mood);
+            globalThis.window.dispatchEvent(new CustomEvent(LAST_MOOD_EVENT, { detail: { mood } }));
           }
         }
 

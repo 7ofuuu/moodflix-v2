@@ -114,7 +114,9 @@ async function fetchMoviesByMoodAction(mood: string, action: ActionType): Promis
   try {
     const sortBy = action === 'explore' ? 'vote_average.desc' : 'popularity.desc';
     const genreIds = MOOD_GENRE_MAP[mood] ?? MOOD_GENRE_MAP.cozy;
-    const page = String(Math.floor(Math.random() * 4) + 1);
+    const pageBuf = new Uint32Array(1);
+    globalThis.crypto.getRandomValues(pageBuf);
+    const page = String((pageBuf[0] % 4) + 1);
 
     const data = await fetchTmdb<PaginatedResponse<MovieDetails>>('/discover/movie', {
       language: 'en-US',
@@ -124,8 +126,14 @@ async function fetchMoviesByMoodAction(mood: string, action: ActionType): Promis
       with_genres: genreIds.join(','),
     });
 
-    const results = [...(data.results ?? [])].sort(() => Math.random() - 0.5);
-    return results.slice(0, MAX_RESULTS);
+    const arr = [...(data.results ?? [])];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const buf = new Uint32Array(1);
+      globalThis.crypto.getRandomValues(buf);
+      const j = buf[0] % (i + 1);
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr.slice(0, MAX_RESULTS);
   } catch {
     return [];
   }

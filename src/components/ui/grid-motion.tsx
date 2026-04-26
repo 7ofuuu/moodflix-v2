@@ -19,9 +19,9 @@ interface GridMotionResponse {
 }
 
 interface GridMotionProps {
-  items?: GridItem[];
-  gradientColor?: string;
-  onPostersReady?: () => void;
+  readonly items?: GridItem[];
+  readonly gradientColor?: string;
+  readonly onPostersReady?: () => void;
 }
 
 const ROW_COUNT = 6;
@@ -162,7 +162,7 @@ export default function GridMotion({ items = [], gradientColor = 'black', onPost
     return () => {
       cancelled = true;
     };
-  }, [activeMood, items.length]);
+  }, [activeMood, items.length, onPostersReady]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
