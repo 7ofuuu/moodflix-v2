@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Bookmark, Heart, CheckCircle } from 'lucide-react';
 import { useWatchedMovies } from '@/hooks/useWatchedMovies';
 import { MovieDetails } from '@/types/movie';
+import { useFavorites } from '@/hooks/useFavorites';
 
 
 interface MovieActionsProps {
@@ -14,8 +15,9 @@ interface MovieActionsProps {
 export function MovieActions({ movie }: MovieActionsProps) {
   const { addToWatchlist, isInWatchedlist, isLoaded } = useWatchedMovies();
   const [isWishlist, setIsWishlist] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const { favorites, toggleFavorite } = useFavorites();
+  const isFavorite = favorites.includes(movie.id);
   const isWatched = isInWatchedlist(movie.id); 
 
   const handleToggleWatched = async (e: React.MouseEvent) => {
@@ -43,7 +45,7 @@ export function MovieActions({ movie }: MovieActionsProps) {
 
       <button
         className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${isFavorite ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-500/20' : 'bg-slate-800/80 hover:bg-slate-700 text-white border border-white/10'}`}
-        onClick={() => setIsFavorite(!isFavorite)}
+        onClick={() => toggleFavorite(movie.id)}
       >
         <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
         {isFavorite ? 'Favorited' : 'Favorite'}
