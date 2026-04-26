@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useId } from 'react';
 import { Search, Loader2, X } from 'lucide-react';
 import Image from 'next/image';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -27,6 +27,7 @@ export function ReviewsMovieSearch({
   const [suggestions, setSuggestions] = useState<MovieDetails[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [open, setOpen] = useState(false);
+  const listboxId = useId();
   const debouncedQuery = useDebounce(query, 400);
   const containerRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -45,7 +46,10 @@ export function ReviewsMovieSearch({
     const controller = new AbortController();
     abortRef.current = controller;
 
-    setIsSearching(true);
+    // Defer to avoid synchronous setState in effect body (react-hooks/set-state-in-effect).
+    Promise.resolve().then(() => {
+      if (!controller.signal.aborted) setIsSearching(true);
+    });
 
     fetch(`/api/movies/discover?query=${encodeURIComponent(debouncedQuery)}&page=1`, {
       signal: controller.signal,
@@ -137,11 +141,12 @@ export function ReviewsMovieSearch({
         aria-label='Search movie for reviews'
         aria-autocomplete='list'
         aria-expanded={isOpen}
+        aria-controls={listboxId}
       />
 
       {isOpen && activeSuggestions.length > 0 && (
         <div className='absolute top-full z-50 mt-2 w-full rounded-xl border border-white/10 bg-zinc-900 shadow-2xl'>
-          <ul role='listbox'>
+          <ul id={listboxId} role='listbox'>
             {activeSuggestions.map(movie => {
               const year = movie.release_date ? movie.release_date.slice(0, 4) : '';
               return (

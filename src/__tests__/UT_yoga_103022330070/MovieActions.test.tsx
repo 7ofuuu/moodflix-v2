@@ -2,20 +2,33 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MovieActions } from '@/components/features/movie/MovieActions';
 
-jest.mock('@/hooks/useFavorites', () => ({
-  useFavorites: () => {
-    const { useState } = require('react');
-    const [favorites, setFavorites] = useState([]);
-    return {
-      favorites,
-      isLoading: false,
-      toggleFavorite: (id: number) => {
-        setFavorites((prev: number[]) =>
-          prev.includes(id) ? prev.filter((f: number) => f !== id) : [...prev, id]
-        );
-      },
-    };
+// Block the module-level throw in auth-client.ts by providing a mock supabase client.
+// useAuth also imports auth-client, so mock it there too via useAuth mock.
+jest.mock('@/lib/auth-client', () => ({
+  supabase: {
+    auth: {
+      getUser: jest.fn().mockResolvedValue({ data: { user: null }, error: null }),
+      onAuthStateChange: jest.fn().mockReturnValue({
+        data: { subscription: { unsubscribe: jest.fn() } },
+      }),
+    },
+    from: jest.fn().mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        eq: jest.fn().mockResolvedValue({ data: [], error: null }),
+      }),
+      insert: jest.fn().mockResolvedValue({ data: null, error: null }),
+      delete: jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ data: null, error: null }),
+        }),
+      }),
+    }),
   },
+}));
+
+// Provide a fake authenticated user so useFavorites' toggleFavorite is not a no-op.
+jest.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({ user: { id: 'test-user' }, userProfile: null, isLoading: false }),
 }));
 
 jest.mock('lucide-react', () => {
