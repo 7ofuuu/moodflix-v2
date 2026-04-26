@@ -51,7 +51,7 @@ export function AddMovieSearch({ onAdd, isInWatchlist }: AddMovieSearchProps) {
 
   return (
     <>
-      <Button onClick={() => setIsOpen(true)} className="w-full md:w-auto">
+      <Button onClick={() => setIsOpen(true)} className="w-full md:w-auto bg-amber-500 hover:bg-amber-600 text-amber-950">
         <Search className="h-4 w-4 mr-2" /> Add Movie
       </Button>
 
@@ -72,7 +72,7 @@ export function AddMovieSearch({ onAdd, isInWatchlist }: AddMovieSearchProps) {
                 <input
                   type="text"
                   placeholder="Type a movie name..."
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   autoFocus
@@ -121,9 +121,10 @@ export function AddMovieSearch({ onAdd, isInWatchlist }: AddMovieSearchProps) {
                       </p>
                     </div>
                     <Button 
-                      variant={isInWatchlist(movie.id) ? "outline" : "secondary"} 
+                      variant={isInWatchlist(movie.id) ? "outline" : "default"} 
                       size="sm"
                       disabled={isInWatchlist(movie.id)}
+                      className={isInWatchlist(movie.id) ? "border-slate-700 text-slate-400" : "bg-amber-500 hover:bg-amber-600 text-amber-950"}
                     >
                       {isInWatchlist(movie.id) ? 'Added' : 'Add'}
                     </Button>

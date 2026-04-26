@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { WatchlistGrid } from '@/components/features/watchlist/WatchlistGrid';
 
 const mockMovies = [
@@ -39,7 +39,7 @@ describe('Watchlist UI Components - UT_tubagus_103022300141', () => {
     render(<WatchlistGrid movies={mockMovies} onRemove={onRemoveMock} />);
     expect(screen.getByText('Inception')).toBeInTheDocument();
     expect(screen.getByText('Interstellar')).toBeInTheDocument();
-    
+
     // Check if the remove buttons exist
     const removeButtons = screen.getAllByRole('button', { name: /Remove from Watchlist/i });
     expect(removeButtons).toHaveLength(2);
@@ -48,12 +48,14 @@ describe('Watchlist UI Components - UT_tubagus_103022300141', () => {
   it('calls onRemove with correct ID when remove button is clicked', () => {
     jest.useFakeTimers();
     render(<WatchlistGrid movies={mockMovies} onRemove={onRemoveMock} />);
-    
+
     const removeButtons = screen.getAllByRole('button', { name: /Remove/i });
     fireEvent.click(removeButtons[0]);
-    
-    jest.advanceTimersByTime(300);
-    
+
+    act(() => {
+      jest.advanceTimersByTime(300);
+    });
+
     expect(onRemoveMock).toHaveBeenCalledTimes(1);
     expect(onRemoveMock).toHaveBeenCalledWith(1); // Inception ID
     jest.useRealTimers();

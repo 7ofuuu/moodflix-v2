@@ -28,8 +28,8 @@ export function WatchlistCard({ movie, onRemove }: WatchlistCardProps) {
 
   return (
     <div className={`transition-all duration-300 ease-in-out h-full ${isRemoving ? 'opacity-0 scale-90' : 'opacity-100 scale-100'}`}>
-      <Card className="group/card card-lift h-full flex flex-col overflow-hidden border border-border/70 bg-linear-to-b from-white/95 to-white/85 py-0 shadow-sm dark:from-slate-900/95 dark:to-slate-800/80">
-        <div className="relative h-[270px] w-full bg-gray-200 sm:h-[300px] lg:h-[320px]">
+      <Card className="group/card card-lift h-full flex flex-col overflow-hidden border border-slate-800/50 bg-slate-900/50 backdrop-blur-md py-0 shadow-lg hover:border-slate-700/50 transition-colors">
+        <div className="relative h-[270px] w-full bg-slate-800 sm:h-[300px] lg:h-[320px]">
           {movie.poster_path ? (
             <Image
               src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
@@ -41,13 +41,13 @@ export function WatchlistCard({ movie, onRemove }: WatchlistCardProps) {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <span className="text-gray-500">No Image</span>
+              <span className="text-slate-500 font-medium">No Image</span>
             </div>
           )}
         </div>
         <CardHeader className="px-5">
-          <CardTitle className="truncate text-base">{movie.title}</CardTitle>
-          <CardDescription className="flex items-center gap-2 text-xs">
+          <CardTitle className="truncate text-base text-white">{movie.title}</CardTitle>
+          <CardDescription className="flex items-center gap-2 text-xs text-slate-400">
             <span>{releaseYear}</span>
             <span>•</span>
             <span className="flex items-center">
@@ -57,7 +57,7 @@ export function WatchlistCard({ movie, onRemove }: WatchlistCardProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="grow px-5 pb-1">
-          <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+          <p className="line-clamp-3 text-sm leading-relaxed text-slate-300">
             {cardDescription}
           </p>
         </CardContent>
