@@ -265,7 +265,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<Movi
 
             {/* Interactivity Buttons */}
             <div>
-              <MovieActions movieId={movie.id} />
+              <MovieActions movie={movie} />
             </div>
 
           </div>
