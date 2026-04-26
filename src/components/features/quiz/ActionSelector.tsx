@@ -115,14 +115,7 @@ export function ActionSelector({
           size='lg'
           className='h-12 w-[220px] shrink-0 rounded-xl bg-white px-8 text-base font-semibold text-black hover:bg-white/92'
         >
-          {isLoading ? (
-            <>
-              <span className='mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent' />
-              Loading...
-            </>
-          ) : (
-            'Get Recommendations'
-          )}
+          Get Recommendations
         </Button>
       </div>
     </div>

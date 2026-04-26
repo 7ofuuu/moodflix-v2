@@ -1,10 +1,13 @@
 'use client';
 
+import Image from 'next/image';
+
 interface AvatarProps {
   avatarUrl?: string | null;
   fullName?: string | null;
   email?: string;
   size?: 'sm' | 'md' | 'lg';
+  className?: string;
 }
 
 export function Avatar({
@@ -12,6 +15,7 @@ export function Avatar({
   fullName,
   email,
   size = 'md',
+  className = '',
 }: Readonly<AvatarProps>) {
   const sizeClasses = {
     sm: 'w-8 h-8 text-xs',
@@ -52,19 +56,23 @@ export function Avatar({
     return colors[index];
   };
 
+  const sizePx = { sm: 32, md: 40, lg: 48 }[size];
+
   if (avatarUrl) {
     return (
-      <img
+      <Image
         src={avatarUrl}
         alt={fullName || 'User avatar'}
-        className={`${sizeClasses[size]} rounded-full object-cover border-2 border-amber-400/50`}
+        width={sizePx}
+        height={sizePx}
+        className={`${sizeClasses[size]} rounded-full object-cover border-2 border-amber-400/50 ${className}`}
       />
     );
   }
 
   return (
     <div
-      className={`${sizeClasses[size]} ${getBackgroundColor()} rounded-full flex items-center justify-center font-semibold text-white border-2 border-amber-400/50`}
+      className={`${sizeClasses[size]} ${getBackgroundColor()} rounded-full flex items-center justify-center font-semibold text-white border-2 border-amber-400/50 ${className}`}
     >
       {getInitials()}
     </div>

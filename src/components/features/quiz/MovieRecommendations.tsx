@@ -9,7 +9,6 @@ import { MovieDetails } from '@/types/movie';
 
 interface MovieRecommendationsProps {
   recommendations: MovieDetails[];
-  isLoading: boolean;
   error: string | null;
   source: 'gemini-hybrid' | 'tmdb-fallback' | null;
   onReset: () => void;
@@ -17,22 +16,10 @@ interface MovieRecommendationsProps {
 
 export function MovieRecommendations({
   recommendations,
-  isLoading,
   error,
   source,
   onReset,
 }: MovieRecommendationsProps) {
-  if (isLoading) {
-    return (
-      <div className='flex flex-col items-center gap-8'>
-        <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary'></div>
-        <div className='text-center'>
-          <h3 className='text-xl font-semibold mb-2'>Finding perfect movies for you...</h3>
-          <p className='text-muted-foreground'>Our AI is analyzing your mood and preferences</p>
-        </div>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -89,7 +76,7 @@ export function MovieRecommendations({
           Try Another Quiz
         </Button>
         <Button asChild size='lg' className='px-8'>
-          <Link href='/#last-mood-recommendations'>Explore More</Link>
+          <Link href='/?from=quiz'>Explore More</Link>
         </Button>
       </div>
     </div>

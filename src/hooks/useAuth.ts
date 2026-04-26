@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/auth-client';
 import { logger } from '@/lib/logger';
+import { fetchLastMood } from '@/lib/mood-history';
+import { setSessionExpiry, clearMoodCache } from '@/lib/movie-cache';
+import { LAST_MOOD_EVENT, LAST_MOOD_STORAGE_KEY } from '@/lib/mood';
 import type { User } from '@supabase/supabase-js';
 
 interface UserProfile {
@@ -19,17 +22,14 @@ export function useAuth() {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        setUser(user);
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        setUser(currentUser);
 
-        if (user) {
-          // Get user profile from users table
+        if (currentUser) {
           const { data } = await supabase
             .from('users')
             .select('*')
-            .eq('id', user.id)
+            .eq('id', currentUser.id)
             .single();
           setUserProfile(data);
         }
@@ -42,22 +42,37 @@ export function useAuth() {
 
     getUser();
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user || null);
-      if (session?.user) {
-        const { data } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        setUserProfile(data);
-      } else {
-        setUserProfile(null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
+          const { data } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          setUserProfile(data);
+        } else {
+          setUserProfile(null);
+        }
+
+        if (event === 'SIGNED_IN' && session?.user) {
+          if (session.expires_at) {
+            setSessionExpiry(session.expires_at);
+          }
+          const mood = await fetchLastMood(supabase, session.user.id);
+          if (mood !== null && globalThis.window !== undefined) {
+            globalThis.window.localStorage.setItem(LAST_MOOD_STORAGE_KEY, mood);
+            globalThis.window.dispatchEvent(new CustomEvent(LAST_MOOD_EVENT, { detail: { mood } }));
+          }
+        }
+
+        if (event === 'SIGNED_OUT') {
+          clearMoodCache();
+        }
       }
-    });
+    );
 
     return () => {
       subscription?.unsubscribe();

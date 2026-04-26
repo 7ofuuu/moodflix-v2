@@ -12,6 +12,7 @@ import {
   VALID_ACTIONS,
   isMoodKey,
 } from '@/lib/mood';
+import { saveLastRecommendations } from '@/lib/last-recommendations';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -46,7 +47,11 @@ export function AiChat() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const applyDetectedPreferences = useCallback((mood: string | null, action: string | null) => {
+  const applyDetectedPreferences = useCallback((
+    mood: string | null,
+    action: string | null,
+    movies: MovieDetails[] = []
+  ) => {
     if (typeof window === 'undefined') {
       return;
     }
@@ -68,6 +73,16 @@ export function AiChat() {
 
     const nextMood = normalizedMood ?? window.localStorage.getItem(LAST_MOOD_STORAGE_KEY) ?? null;
     const nextAction = normalizedAction ?? window.localStorage.getItem(LAST_ACTION_STORAGE_KEY) ?? null;
+
+    if (normalizedMood && movies.length > 0) {
+      saveLastRecommendations({
+        mood: normalizedMood,
+        action: nextAction,
+        movies,
+        source: 'ai-chat',
+      });
+      return;
+    }
 
     if (normalizedMood) {
       window.localStorage.setItem(LAST_MOOD_STORAGE_KEY, normalizedMood);
@@ -126,7 +141,7 @@ export function AiChat() {
         ready: boolean;
       };
 
-      applyDetectedPreferences(data.mood, data.action);
+      applyDetectedPreferences(data.mood, data.action, data.movies ?? []);
 
       setMessages(prev => [
         ...prev,
@@ -136,14 +151,8 @@ export function AiChat() {
           movies: data.movies?.length ? data.movies : undefined,
         },
       ]);
-    } catch {
-      setMessages(prev => [
-        ...prev,
-        {
-          role: 'assistant',
-          content: "Sorry, I had trouble connecting. Please try again!",
-        },
-      ]);
+    } catch (error) {
+      console.error('AI chat request failed', error);
     } finally {
       setIsLoading(false);
     }
@@ -266,20 +275,6 @@ export function AiChat() {
               </div>
             ))}
 
-            {isLoading && (
-              <div className='flex gap-2 justify-start'>
-                <div className='flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-400/20 border border-amber-400/30 mt-1'>
-                  <Film className='h-3 w-3 text-amber-400' />
-                </div>
-                <div className='rounded-2xl rounded-tl-sm bg-white/6 border border-white/8 px-4 py-3'>
-                  <div className='flex gap-1 items-center'>
-                    <span className='h-1.5 w-1.5 rounded-full bg-white/40 animate-bounce' style={{ animationDelay: '0ms' }} />
-                    <span className='h-1.5 w-1.5 rounded-full bg-white/40 animate-bounce' style={{ animationDelay: '120ms' }} />
-                    <span className='h-1.5 w-1.5 rounded-full bg-white/40 animate-bounce' style={{ animationDelay: '240ms' }} />
-                  </div>
-                </div>
-              </div>
-            )}
             <div ref={messagesEndRef} />
           </div>
 

@@ -153,6 +153,14 @@ export default function Navbar() {
 
                         {/* Menu Items */}
                         <div className='py-1'>
+                          <Link
+                            href='/profile'
+                            onClick={() => setIsProfileOpen(false)}
+                            className='flex items-center gap-2 px-4 py-2 text-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors'
+                          >
+                            <Settings className='w-4 h-4' />
+                            Profile Settings
+                          </Link>
                           <button
                             onClick={handleLogout}
                             className='w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors'

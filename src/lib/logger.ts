@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * Centralised logger — console calls isolated here so SonarQube
  * only needs a single NOSONAR suppression instead of per-call suppressions.
