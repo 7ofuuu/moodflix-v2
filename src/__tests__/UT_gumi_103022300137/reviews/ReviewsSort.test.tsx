@@ -82,4 +82,18 @@ describe('ReviewsFilters', () => {
     fireEvent.change(genreSelect, { target: { value: '28' } });
     expect(defaultProps.onGenreChange).toHaveBeenCalledWith('28');
   });
+
+  it('calls onEraChange when era selection changes', () => {
+    render(<ReviewsFilters {...defaultProps} />);
+    const eraSelect = screen.getByLabelText('All Eras');
+    fireEvent.change(eraSelect, { target: { value: '2000s' } });
+    expect(defaultProps.onEraChange).toHaveBeenCalledWith('2000s');
+  });
+
+  it('calls onMinRatingChange when min rating selection changes', () => {
+    render(<ReviewsFilters {...defaultProps} />);
+    const ratingSelect = screen.getByLabelText('Any Rating');
+    fireEvent.change(ratingSelect, { target: { value: '7' } });
+    expect(defaultProps.onMinRatingChange).toHaveBeenCalledWith('7');
+  });
 });

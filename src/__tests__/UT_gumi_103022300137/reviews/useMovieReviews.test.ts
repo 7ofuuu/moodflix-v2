@@ -79,7 +79,7 @@ describe('useMovieReviews', () => {
     expect(result.current.reviews).toEqual([]);
   });
 
-  it('falls back to empty reviews and totalPages=1 when data fields are missing', async () => {
+  it('falls back to empty reviews, totalPages=1 and totalResults=0 when data fields are missing', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({}),
@@ -91,5 +91,75 @@ describe('useMovieReviews', () => {
 
     expect(result.current.reviews).toEqual([]);
     expect(result.current.totalPages).toBe(1);
+    expect(result.current.totalResults).toBe(0);
+  });
+
+  it('returns totalResults from the API response', async () => {
+    mockFetchSuccess({ totalResults: 42 });
+    const { result } = renderHook(() => useMovieReviews({ page: 1 }));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.totalResults).toBe(42);
+  });
+
+  it('includes genre_id in query params when genreId is not "all"', async () => {
+    mockFetchSuccess();
+    const { result } = renderHook(() => useMovieReviews({ page: 1, genreId: '28' }));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const fetchCall = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    expect(fetchCall).toContain('genre_id=28');
+  });
+
+  it('excludes genre_id from query params when genreId is "all"', async () => {
+    mockFetchSuccess();
+    const { result } = renderHook(() => useMovieReviews({ page: 1, genreId: 'all' }));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const fetchCall = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    expect(fetchCall).not.toContain('genre_id');
+  });
+
+  it('includes era in query params when era is not "All Eras"', async () => {
+    mockFetchSuccess();
+    const { result } = renderHook(() => useMovieReviews({ page: 1, era: '2000s' }));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const fetchCall = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    expect(fetchCall).toContain('era=2000s');
+  });
+
+  it('excludes era from query params when era is "All Eras"', async () => {
+    mockFetchSuccess();
+    const { result } = renderHook(() => useMovieReviews({ page: 1, era: 'All Eras' }));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const fetchCall = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    expect(fetchCall).not.toContain('era=');
+  });
+
+  it('includes min_rating in query params when minRating is not "0"', async () => {
+    mockFetchSuccess();
+    const { result } = renderHook(() => useMovieReviews({ page: 1, minRating: '7' }));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const fetchCall = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    expect(fetchCall).toContain('min_rating=7');
+  });
+
+  it('excludes min_rating from query params when minRating is "0"', async () => {
+    mockFetchSuccess();
+    const { result } = renderHook(() => useMovieReviews({ page: 1, minRating: '0' }));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const fetchCall = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    expect(fetchCall).not.toContain('min_rating');
   });
 });
