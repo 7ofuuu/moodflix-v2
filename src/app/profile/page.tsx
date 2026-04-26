@@ -311,7 +311,7 @@ export default function ProfilePage() {
         <HorizontalScrollSection title='Favorite Films' href='/films' itemCount={8} />
 
         {/* Watched */}
-        <HorizontalScrollSection title='Watched' href='/watched' itemCount={8} />
+        <HorizontalScrollSection title='Watched' href='/watched-movies' itemCount={8} />
 
         {/* Watchlist */}
         <HorizontalScrollSection title='Watchlist' href='/watchlist' itemCount={8} />
