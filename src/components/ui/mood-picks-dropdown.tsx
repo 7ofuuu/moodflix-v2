@@ -42,6 +42,8 @@ export function MoodPicksDropdown({ mood, isOpen }: MoodPicksDropdownProps) {
   const loadedMoodRef = useRef<string | null>(null);
 
   const moodLabel = MOOD_LABELS[mood] ?? mood;
+  const GRID_COLS = 5;
+  const snapToGrid = (n: number) => (n < GRID_COLS ? n : Math.floor(n / GRID_COLS) * GRID_COLS);
   const canLoadMore =
     currentPage < totalPages &&
     !isLoading &&
@@ -73,7 +75,7 @@ export function MoodPicksDropdown({ mood, isOpen }: MoodPicksDropdownProps) {
       } else {
         const firstPage = (data.movies ?? []).slice(0, MAX_MOOD_COLLECTION_MOVIES);
         setMovies(firstPage);
-        setInitialCount(firstPage.length);
+        setInitialCount(snapToGrid(firstPage.length));
       }
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Failed to load mood picks');
@@ -136,7 +138,7 @@ export function MoodPicksDropdown({ mood, isOpen }: MoodPicksDropdownProps) {
 
         {!isLoading && movies.length > 0 && (
           <div className='grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'>
-            {(isExpanded ? movies : movies.slice(0, initialCount || movies.length)).map(movie => (
+            {(isExpanded ? movies.slice(0, snapToGrid(movies.length)) : movies.slice(0, initialCount || movies.length)).map(movie => (
               <MovieCard key={movie.id} movie={movie} />
             ))}
           </div>

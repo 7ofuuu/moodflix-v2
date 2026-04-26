@@ -66,7 +66,6 @@ function QuizPageContent() {
             {step === 'results' && (
               <MovieRecommendations
                 recommendations={recommendations}
-                isLoading={isLoading}
                 error={error}
                 source={source}
                 onReset={handleReset}
