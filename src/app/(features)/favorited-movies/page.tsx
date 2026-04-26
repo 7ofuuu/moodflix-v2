@@ -10,7 +10,7 @@ import { Reveal } from '@/components/ui/reveal';
 import { supabase } from '@/lib/auth-client';
 import { Loader2 } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
-import type { MovieDetails } from '@/types/movie'; // ⚠️ sesuaikan path
+import type { MovieDetails } from '@/types/movie';
 
 const MOVIES_PER_PAGE = 10;
 

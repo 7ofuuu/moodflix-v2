@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Bookmark, Heart, CheckCircle } from 'lucide-react';
+import { useFavorites } from '@/hooks/useFavorites';
 
 interface MovieActionsProps {
   readonly movieId: number;
@@ -11,7 +12,8 @@ interface MovieActionsProps {
 export function MovieActions({ movieId }: MovieActionsProps) {
   // Local state untuk simulasi fitur interaksi
   const [isWishlist, setIsWishlist] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const { favorites, toggleFavorite } = useFavorites();
+  const isFavorite = favorites.includes(movieId);
   const [isWatched, setIsWatched] = useState(false);
 
   return (
@@ -26,7 +28,7 @@ export function MovieActions({ movieId }: MovieActionsProps) {
 
       <button
         className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${isFavorite ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-500/20' : 'bg-slate-800/80 hover:bg-slate-700 text-white border border-white/10'}`}
-        onClick={() => setIsFavorite(!isFavorite)}
+        onClick={() => toggleFavorite(movieId)}
       >
         <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
         {isFavorite ? 'Favorited' : 'Favorite'}

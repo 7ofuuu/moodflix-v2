@@ -9,6 +9,7 @@ import { Avatar } from '@/components/common/avatar';
 import { Button } from '@/components/ui/button';
 import { LogOut, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { useFavorites } from '@/hooks/useFavorites';
 
 interface HorizontalScrollSectionProps {
   title: string;
@@ -94,6 +95,40 @@ export default function ProfilePage() {
   const [bio, setBio] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const { favorites } = useFavorites();
+  const [favoriteMovies, setFavoriteMovies] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchMovies() {
+      if (!favorites.length) {
+        setFavoriteMovies([]);
+        return;
+      }
+
+      try {
+        const movies = await Promise.all(
+          favorites.slice(0, 8).map(async (id) => {
+            const res = await fetch(
+              `https://api.themoviedb.org/3/movie/${id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_TOKEN}`,
+                },
+              }
+            );
+
+            return res.json();
+          })
+        );
+
+        setFavoriteMovies(movies);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    fetchMovies();
+  }, [favorites]);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -308,7 +343,26 @@ export default function ProfilePage() {
         </section>
 
         {/* Favorite Films */}
-        <HorizontalScrollSection title='Favorite Films' href='/films' itemCount={8} />
+        <HorizontalScrollSection title='Favorite Films' href='/favorited-movies'>
+          {favoriteMovies.length === 0 ? (
+            <div className="text-slate-400 text-sm px-2">
+              No favorite movies yet.
+            </div>
+          ) : (
+            favoriteMovies.map((movie) => (
+              <div
+                key={movie.id}
+                className='flex-shrink-0 w-36 sm:w-40 md:w-44'
+              >
+                <img
+                  src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
+                  alt={movie.title}
+                  className='rounded-lg'
+                />
+              </div>
+            ))
+          )}
+        </HorizontalScrollSection>
 
         {/* Watched */}
         <HorizontalScrollSection title='Watched' href='/watched-movies' itemCount={8} />
