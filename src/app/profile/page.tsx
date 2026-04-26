@@ -10,12 +10,19 @@ import { Button } from '@/components/ui/button';
 import { LogOut, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { useFavorites } from '@/hooks/useFavorites';
+import Image from 'next/image';
 
 interface HorizontalScrollSectionProps {
   title: string;
   href: string;
   itemCount?: number;
   children?: React.ReactNode;
+}
+
+interface Movie {
+  id: number;
+  title: string;
+  poster_path: string;
 }
 
 function HorizontalScrollSection({ title, href, itemCount = 8, children }: HorizontalScrollSectionProps) {
@@ -96,7 +103,7 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const { favorites } = useFavorites();
-  const [favoriteMovies, setFavoriteMovies] = useState<any[]>([]);
+  const [favoriteMovies, setFavoriteMovies] = useState<Movie[]>([]);
 
   useEffect(() => {
     async function fetchMovies() {
@@ -354,11 +361,19 @@ export default function ProfilePage() {
                 key={movie.id}
                 className='flex-shrink-0 w-36 sm:w-40 md:w-44'
               >
-                <img
+              {movie.poster_path ? (
+                <Image
                   src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
                   alt={movie.title}
-                  className='rounded-lg'
+                  width={176}
+                  height={264}
+                  className="rounded-lg"
                 />
+              ) : (
+                <div className='w-full h-[264px] bg-slate-900/50 border border-slate-800/50 rounded-lg flex items-center justify-center text-slate-400 text-sm'>
+                  No Image
+                </div>
+              )}
               </div>
             ))
           )}

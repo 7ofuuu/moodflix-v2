@@ -8,7 +8,7 @@ interface MovieActionsProps {
   readonly movieId: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 export function MovieActions({ movieId }: MovieActionsProps) {
   // Local state untuk simulasi fitur interaksi
   const [isWishlist, setIsWishlist] = useState(false);

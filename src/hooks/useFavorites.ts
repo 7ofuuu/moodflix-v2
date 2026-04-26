@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/auth-client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -9,28 +9,28 @@ export function useFavorites() {
     const [favorites, setFavorites] = useState<number[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const fetchFavorites = useCallback(async () => {
-        if (!user) {
-            setFavorites([]);
-            setIsLoading(false);
-            return;
-        }
-
-        const { data, error } = await supabase
-            .from('user_favorites')
-            .select('movie_id')
-            .eq('user_id', user.id);
-
-        if (!error && data) {
-            setFavorites(data.map((f) => f.movie_id));
-        }
-
-        setIsLoading(false);
-    }, [user]);
-
     useEffect(() => {
+        async function fetchFavorites() {
+            if (!user) {
+                setFavorites([]);
+                setIsLoading(false);
+                return;
+            }
+
+            const { data, error } = await supabase
+                .from('user_favorites')
+                .select('movie_id')
+                .eq('user_id', user.id);
+
+            if (!error && data) {
+                setFavorites(data.map((f) => f.movie_id));
+            }
+
+            setIsLoading(false);
+        }
+
         fetchFavorites();
-    }, [fetchFavorites]);
+    }, [user]);
 
     const toggleFavorite = async (movieId: number) => {
         if (!user) return;
@@ -43,11 +43,13 @@ export function useFavorites() {
                 .delete()
                 .eq('user_id', user.id)
                 .eq('movie_id', movieId);
+
             setFavorites((prev) => prev.filter((id) => id !== movieId));
         } else {
             await supabase
                 .from('user_favorites')
                 .insert({ user_id: user.id, movie_id: movieId });
+
             setFavorites((prev) => [...prev, movieId]);
         }
     };
