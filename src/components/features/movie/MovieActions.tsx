@@ -11,7 +11,6 @@ interface MovieActionsProps {
   readonly movie: MovieDetails;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function MovieActions({ movie }: MovieActionsProps) {
   const { addToWatchlist, isInWatchedlist, isLoaded } = useWatchedMovies();
   const [isWishlist, setIsWishlist] = useState(false);
