@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import WatchlistPage from '@/app/(features)/watchlist/page';
 
 // Mock next/navigation for Navbar
@@ -10,7 +10,24 @@ jest.mock('next/navigation', () => ({
 
 // Mock useAuth since Navbar needs it
 jest.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({ user: null, userProfile: null, isLoading: false })
+  useAuth: () => ({ user: { id: 'test-user-id' }, userProfile: null, isLoading: false })
+}));
+
+// Mock Supabase
+jest.mock('@/lib/auth-client', () => ({
+  supabase: {
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        eq: jest.fn().mockResolvedValue({ data: [], error: null })
+      })),
+      insert: jest.fn().mockResolvedValue({ error: null }),
+      delete: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          eq: jest.fn().mockResolvedValue({ error: null })
+        }))
+      }))
+    }))
+  }
 }));
 
 // Mock fetch for the search API
@@ -33,13 +50,7 @@ global.fetch = jest.fn(() =>
 
 describe('Watchlist Integration - UT_tubagus_103022300141', () => {
   beforeEach(() => {
-    window.localStorage.clear();
     jest.clearAllMocks();
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
   });
 
   it('allows searching and adding a movie to the watchlist', async () => {
@@ -61,13 +72,10 @@ describe('Watchlist Integration - UT_tubagus_103022300141', () => {
     const searchInput = screen.getByPlaceholderText('Type a movie name...');
     fireEvent.change(searchInput, { target: { value: 'Mocked' } });
 
-    // Wait for debounce and fetch
-    jest.advanceTimersByTime(500);
-
-    // Wait for the API mock to respond and show the result
+    // Wait for the API mock to respond and show the result (debounce might take a moment, use waitFor)
     await waitFor(() => {
       expect(screen.getByText('Mocked Search Result Movie')).toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
 
     // Click the result to add it
     const addResultButton = screen.getAllByRole('button', { name: /Add/i })[1]; 
@@ -79,9 +87,6 @@ describe('Watchlist Integration - UT_tubagus_103022300141', () => {
     // Test removal
     const removeButton = screen.getByRole('button', { name: /Remove/i });
     fireEvent.click(removeButton);
-    
-    // Fast-forward removal animation timeout
-    jest.advanceTimersByTime(300);
 
     // Should be empty again
     await waitFor(() => {
