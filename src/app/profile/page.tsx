@@ -17,7 +17,7 @@ interface HorizontalScrollSectionProps {
   children?: React.ReactNode;
 }
 
-function HorizontalScrollSection({ title, href, itemCount = 8, children }: Readonly<HorizontalScrollSectionProps>) {
+function HorizontalScrollSection({ title, href, itemCount = 8, children }: HorizontalScrollSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: 'left' | 'right') => {
@@ -248,11 +248,9 @@ export default function ProfilePage() {
           {isEditing ? (
             <div className='space-y-4'>
               <div>
-                <label htmlFor='fullNameInput' className='block text-sm text-slate-300 mb-2'>
-                  Name
-                </label>
+                <label htmlFor='profile-name' className='block text-sm text-slate-300 mb-2'>Name</label>
                 <input
-                  id='fullNameInput'
+                  id='profile-name'
                   type='text'
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
@@ -261,11 +259,9 @@ export default function ProfilePage() {
                 />
               </div>
               <div>
-                <label htmlFor='bioInput' className='block text-sm text-slate-300 mb-2'>
-                  Bio
-                </label>
+                <label htmlFor='profile-bio' className='block text-sm text-slate-300 mb-2'>Bio</label>
                 <textarea
-                  id='bioInput'
+                  id='profile-bio'
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   placeholder='Tell us about yourself...'
@@ -323,4 +319,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
