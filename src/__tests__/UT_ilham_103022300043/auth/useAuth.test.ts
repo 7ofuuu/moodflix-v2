@@ -2,19 +2,17 @@
 jest.mock('@/lib/auth-client');
 jest.mock('@/lib/logger');
 
-import { renderHook, waitFor, act } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/auth-client';
 import { logger } from '@/lib/logger';
 
 describe('useAuth Hook - Test Cases untuk Fitur Autentikasi', () => {
-  let mockOnAuthStateChange: jest.Mock;
   let mockSubscriptionUnsubscribe: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockSubscriptionUnsubscribe = jest.fn();
-    mockOnAuthStateChange = jest.fn();
 
     // Setup default mocks for supabase methods
     (supabase.auth.getUser as jest.Mock).mockResolvedValue({
@@ -66,12 +64,10 @@ describe('useAuth Hook - Test Cases untuk Fitur Autentikasi', () => {
       (supabase.from as jest.Mock).mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
-            single: jest
-              .fn()
-              .mockResolvedValueOnce({
-                data: mockProfile,
-                error: null,
-              }),
+            single: jest.fn().mockResolvedValueOnce({
+              data: mockProfile,
+              error: null,
+            }),
           }),
         }),
       });
@@ -156,12 +152,10 @@ describe('useAuth Hook - Test Cases untuk Fitur Autentikasi', () => {
       (supabase.from as jest.Mock).mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
-            single: jest
-              .fn()
-              .mockResolvedValueOnce({
-                data: null,
-                error: new Error('Profile not found'),
-              }),
+            single: jest.fn().mockResolvedValueOnce({
+              data: null,
+              error: new Error('Profile not found'),
+            }),
           }),
         }),
       });
@@ -218,20 +212,19 @@ describe('useAuth Hook - Test Cases untuk Fitur Autentikasi', () => {
     });
 
     it('should handle auth state change events properly', async () => {
-      let capturedCallback: Function | null = null;
+      type AuthCallback = (event: string, session: unknown) => Promise<void>;
+      let capturedCallback: AuthCallback | null = null;
 
-      (supabase.auth.onAuthStateChange as jest.Mock).mockImplementation(
-        (callback: Function) => {
-          capturedCallback = callback;
-          return {
-            data: {
-              subscription: {
-                unsubscribe: jest.fn(),
-              },
+      (supabase.auth.onAuthStateChange as jest.Mock).mockImplementation((callback: AuthCallback) => {
+        capturedCallback = callback;
+        return {
+          data: {
+            subscription: {
+              unsubscribe: jest.fn(),
             },
-          };
-        }
-      );
+          },
+        };
+      });
 
       (supabase.auth.getUser as jest.Mock).mockResolvedValueOnce({
         data: { user: null },

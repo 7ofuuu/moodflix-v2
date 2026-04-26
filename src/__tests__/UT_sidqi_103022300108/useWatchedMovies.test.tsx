@@ -63,41 +63,41 @@ describe('useWatchedMovies - Edge Cases', () => {
   });
 
   it('prevents adding the same movie twice to the list', async () => {
-  // 1. Setup Supabase to return the movie as ALREADY in the database
-  (supabase.from as jest.Mock).mockReturnValue({
-    select: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockResolvedValue({ 
-      data: [{ movie_id: 550 }], // The ID is already present
-      error: null 
-    }),
-    insert: jest.fn().mockResolvedValue({ error: null }),
+    // 1. Setup Supabase to return the movie as ALREADY in the database
+    (supabase.from as jest.Mock).mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockResolvedValue({
+        data: [{ movie_id: 550 }], // The ID is already present
+        error: null,
+      }),
+      insert: jest.fn().mockResolvedValue({ error: null }),
+    });
+
+    // 2. Mock TMDB to return the movie details
+    (fetchTmdb as jest.Mock).mockResolvedValue(mockMovie);
+
+    const { result } = renderHook(() => useWatchedMovies());
+
+    // 3. IMPORTANT: Wait for the initial fetch to finish
+    await act(async () => {
+      // This allows the useEffect to populate the watchlist with the mock data above
+    });
+
+    // 4. Verify the movie is there before we start the "duplicate" attempt
+    expect(result.current.watchlist).toHaveLength(1);
+
+    // 5. Try to add the same movie again
+    await act(async () => {
+      await result.current.addToWatchlist(mockMovie); //
+    });
+
+    // 6. The length should still be 1
+    expect(result.current.watchlist).toHaveLength(1);
+
+    // 7. Verify that Supabase insert was NEVER called for this duplicate
+    // const watchedMoviesTable = (supabase.from as jest.Mock).mock.results
+    //   .find(r => r.value.table === 'watched_movies');
+    // If your mock setup tracks the insert call specifically:
+    // expect(supabase.from('watched_movies').insert).not.toHaveBeenCalled();
   });
-  
-  // 2. Mock TMDB to return the movie details
-  (fetchTmdb as jest.Mock).mockResolvedValue(mockMovie);
-
-  const { result } = renderHook(() => useWatchedMovies());
-
-  // 3. IMPORTANT: Wait for the initial fetch to finish
-  await act(async () => {
-    // This allows the useEffect to populate the watchlist with the mock data above
-  });
-
-  // 4. Verify the movie is there before we start the "duplicate" attempt
-  expect(result.current.watchlist).toHaveLength(1);
-
-  // 5. Try to add the same movie again
-  await act(async () => {
-    await result.current.addToWatchlist(mockMovie); //
-  });
-
-  // 6. The length should still be 1
-  expect(result.current.watchlist).toHaveLength(1);
-  
-  // 7. Verify that Supabase insert was NEVER called for this duplicate
-  const watchedMoviesTable = (supabase.from as jest.Mock).mock.results
-    .find(r => r.value.table === 'watched_movies');
-  // If your mock setup tracks the insert call specifically:
-  // expect(supabase.from('watched_movies').insert).not.toHaveBeenCalled();
-});
 });
