@@ -67,11 +67,16 @@ jest.mock('lucide-react', () => {
 });
 
 jest.mock('next/link', () => {
-  return ({ children, href }: { children: React.ReactNode; href: string }) => (
+  const Link = ({ children, href }: { children: React.ReactNode; href: string }) => (
     <a href={href} data-testid={`link-${href}`}>
       {children}
     </a>
   );
+  
+  Link.displayName = 'Link';
+  
+  // Return the component directly since next/link has a default export
+  return Link; 
 });
 
 // Mock the profile page component
