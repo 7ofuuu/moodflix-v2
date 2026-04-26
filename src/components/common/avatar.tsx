@@ -5,6 +5,7 @@ interface AvatarProps {
   fullName?: string | null;
   email?: string;
   size?: 'sm' | 'md' | 'lg';
+  className?: string;
 }
 
 export function Avatar({
@@ -12,6 +13,7 @@ export function Avatar({
   fullName,
   email,
   size = 'md',
+  className = '',
 }: Readonly<AvatarProps>) {
   const sizeClasses = {
     sm: 'w-8 h-8 text-xs',
@@ -57,14 +59,14 @@ export function Avatar({
       <img
         src={avatarUrl}
         alt={fullName || 'User avatar'}
-        className={`${sizeClasses[size]} rounded-full object-cover border-2 border-amber-400/50`}
+        className={`${sizeClasses[size]} rounded-full object-cover border-2 border-amber-400/50 ${className}`}
       />
     );
   }
 
   return (
     <div
-      className={`${sizeClasses[size]} ${getBackgroundColor()} rounded-full flex items-center justify-center font-semibold text-white border-2 border-amber-400/50`}
+      className={`${sizeClasses[size]} ${getBackgroundColor()} rounded-full flex items-center justify-center font-semibold text-white border-2 border-amber-400/50 ${className}`}
     >
       {getInitials()}
     </div>
