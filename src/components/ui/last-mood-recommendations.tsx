@@ -11,6 +11,7 @@ import {
   MOOD_LABELS,
   normalizeMood,
 } from '@/lib/mood';
+import { getLastRecommendations } from '@/lib/last-recommendations';
 import CircularGallery, { CircularGalleryItem } from '@/components/ui/circular-gallery';
 
 interface MoodFeedResponse {
@@ -155,6 +156,19 @@ async function fetchMoodFeedPage(mood: string, page: number): Promise<MoodFeedRe
   return (await response.json()) as MoodFeedResponse;
 }
 
+function getStoredMoviesForMood(mood: string): MovieDetails[] | null {
+  const stored = getLastRecommendations();
+  if (!stored || stored.movies.length === 0) {
+    return null;
+  }
+
+  if (normalizeMood(stored.mood) !== mood) {
+    return null;
+  }
+
+  return stored.movies;
+}
+
 export function LastMoodRecommendations() {
   // Start with default so SSR and initial client render match (hydration-safe)
   const [mood, setMood] = useState('cozy');
@@ -169,6 +183,7 @@ export function LastMoodRecommendations() {
   const [isInteracting, setIsInteracting] = useState(false);
   const [accentRgb, setAccentRgb] = useState<[number, number, number]>([251, 191, 36]);
   const [isVisible, setIsVisible] = useState(false);
+  const [refreshTick, setRefreshTick] = useState(0);
 
   const sectionRef = useRef<HTMLElement | null>(null);
 
@@ -212,7 +227,21 @@ export function LastMoodRecommendations() {
 
   const loadPage = useCallback(
     async (page: number, append: boolean) => {
-      if (!append) { setIsLoading(true); setError(null); }
+      if (!append) {
+        setIsLoading(true);
+        setError(null);
+
+        const storedMovies = getStoredMoviesForMood(mood);
+        if (storedMovies && storedMovies.length > 0) {
+          setMovies(storedMovies.slice(0, AUTO_LOAD_LIMIT));
+          setCurrentPage(1);
+          setTotalPages(1);
+          setActiveIndex(0);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       try {
         const data = await fetchMoodFeedPage(mood, page);
         setCurrentPage(data.page ?? page);
@@ -239,13 +268,14 @@ export function LastMoodRecommendations() {
     [mood]
   );
 
-  useEffect(() => { void loadPage(1, false); }, [loadPage]);
+  useEffect(() => { void loadPage(1, false); }, [loadPage, refreshTick]);
 
   // Read localStorage after mount (SSR-safe)
   useEffect(() => {
     const syncMood = () => {
       const next = normalizeMood(window.localStorage.getItem(LAST_MOOD_STORAGE_KEY));
       setMood(prev => (prev === next ? prev : next));
+      setRefreshTick(prev => prev + 1);
     };
     syncMood(); // initial sync
     window.addEventListener(LAST_MOOD_EVENT, syncMood as EventListener);

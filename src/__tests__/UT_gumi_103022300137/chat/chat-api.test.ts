@@ -10,7 +10,10 @@ jest.mock('@/lib/tmdb', () => ({
 
 process.env.GEMINI_API_KEY = 'test-gemini-key';
 
+import { fetchTmdb } from '@/lib/tmdb';
 import { POST } from '@/app/api/chat/route';
+
+const mockedFetchTmdb = fetchTmdb as jest.MockedFunction<typeof fetchTmdb>;
 
 function makeRequest(body: unknown) {
   return new NextRequest('http://localhost/api/chat', {
@@ -32,6 +35,12 @@ function mockGemini(responseText: string, ok = true) {
 
 beforeEach(() => {
   global.fetch = jest.fn();
+  mockedFetchTmdb.mockResolvedValue({
+    results: [],
+    page: 1,
+    total_pages: 1,
+    total_results: 0,
+  });
 });
 
 afterEach(() => {
@@ -61,6 +70,44 @@ describe('POST /api/chat', () => {
     expect(body).toHaveProperty('action');
     expect(body).toHaveProperty('ready');
     expect(body).toHaveProperty('movies');
+  });
+
+  it('returns up to 50 movies when discover results are abundant', async () => {
+    mockGemini(JSON.stringify({ reply: 'Great!', mood: 'happy', action: 'stay', ready: true }));
+
+    mockedFetchTmdb.mockImplementation(async (_path, params) => {
+      const page = Number((params as Record<string, string> | undefined)?.page ?? '1');
+      const results = Array.from({ length: 20 }, (_, index) => {
+        const id = (page - 1) * 20 + index + 1;
+        return {
+          id,
+          title: `Movie ${id}`,
+          poster_path: `/poster-${id}.jpg`,
+          backdrop_path: `/backdrop-${id}.jpg`,
+          release_date: '2024-01-01',
+          vote_average: 7.1,
+          overview: `Overview ${id}`,
+          genre_ids: [35],
+        };
+      });
+
+      return {
+        results,
+        page,
+        total_pages: 10,
+        total_results: 200,
+      };
+    });
+
+    const res = await POST(makeRequest({ messages: [{ role: 'user', content: 'I feel happy' }] }));
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(Array.isArray(body.movies)).toBe(true);
+    expect(body.movies).toHaveLength(50);
+
+    const movieIds = (body.movies as Array<{ id: number }>).map(movie => movie.id);
+    expect(new Set(movieIds).size).toBe(50);
   });
 
   it('normalizes mood alias melancholic → sad', async () => {

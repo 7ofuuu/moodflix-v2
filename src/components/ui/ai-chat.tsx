@@ -12,6 +12,7 @@ import {
   VALID_ACTIONS,
   isMoodKey,
 } from '@/lib/mood';
+import { saveLastRecommendations } from '@/lib/last-recommendations';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -46,7 +47,11 @@ export function AiChat() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const applyDetectedPreferences = useCallback((mood: string | null, action: string | null) => {
+  const applyDetectedPreferences = useCallback((
+    mood: string | null,
+    action: string | null,
+    movies: MovieDetails[] = []
+  ) => {
     if (typeof window === 'undefined') {
       return;
     }
@@ -68,6 +73,16 @@ export function AiChat() {
 
     const nextMood = normalizedMood ?? window.localStorage.getItem(LAST_MOOD_STORAGE_KEY) ?? null;
     const nextAction = normalizedAction ?? window.localStorage.getItem(LAST_ACTION_STORAGE_KEY) ?? null;
+
+    if (normalizedMood && movies.length > 0) {
+      saveLastRecommendations({
+        mood: normalizedMood,
+        action: nextAction,
+        movies,
+        source: 'ai-chat',
+      });
+      return;
+    }
 
     if (normalizedMood) {
       window.localStorage.setItem(LAST_MOOD_STORAGE_KEY, normalizedMood);
@@ -126,7 +141,7 @@ export function AiChat() {
         ready: boolean;
       };
 
-      applyDetectedPreferences(data.mood, data.action);
+      applyDetectedPreferences(data.mood, data.action, data.movies ?? []);
 
       setMessages(prev => [
         ...prev,

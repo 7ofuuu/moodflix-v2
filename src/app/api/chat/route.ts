@@ -7,7 +7,9 @@ import type { PaginatedResponse, MovieDetails } from '@/types/movie';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_CHAT_MODEL = 'gemini-2.5-flash-lite';
-const MAX_RESULTS = 8;
+const MAX_RESULTS = 50;
+const DISCOVER_PAGE_POOL = 8;
+const DISCOVER_SAMPLE_PAGES = 5;
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -110,29 +112,57 @@ function extractFirstJsonObject(text: string): string | null {
   return null;
 }
 
+function randomInt(maxExclusive: number): number {
+  if (maxExclusive <= 1) return 0;
+
+  if (typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto.getRandomValues === 'function') {
+    const buf = new Uint32Array(1);
+    globalThis.crypto.getRandomValues(buf);
+    return buf[0] % maxExclusive;
+  }
+
+  return Math.floor(Math.random() * maxExclusive);
+}
+
 async function fetchMoviesByMoodAction(mood: string, action: ActionType): Promise<MovieDetails[]> {
   try {
     const sortBy = action === 'explore' ? 'vote_average.desc' : 'popularity.desc';
     const genreIds = MOOD_GENRE_MAP[mood] ?? MOOD_GENRE_MAP.cozy;
-    const pageBuf = new Uint32Array(1);
-    globalThis.crypto.getRandomValues(pageBuf);
-    const page = String((pageBuf[0] % 4) + 1);
+    const startPage = randomInt(DISCOVER_PAGE_POOL) + 1;
+    const pages = Array.from(
+      { length: DISCOVER_SAMPLE_PAGES },
+      (_, index) => String(((startPage + index - 1) % DISCOVER_PAGE_POOL) + 1)
+    );
 
-    const data = await fetchTmdb<PaginatedResponse<MovieDetails>>('/discover/movie', {
-      language: 'en-US',
-      page,
-      sort_by: sortBy,
-      'vote_count.gte': '150',
-      with_genres: genreIds.join(','),
-    });
+    const pageResults = await Promise.all(
+      pages.map(async page => {
+        try {
+          const data = await fetchTmdb<PaginatedResponse<MovieDetails>>('/discover/movie', {
+            language: 'en-US',
+            page,
+            sort_by: sortBy,
+            'vote_count.gte': '150',
+            with_genres: genreIds.join(','),
+          });
 
-    const arr = [...(data.results ?? [])];
+          return data.results ?? [];
+        } catch {
+          return [];
+        }
+      })
+    );
+
+    const deduped = new Map<number, MovieDetails>();
+    for (const movie of pageResults.flat()) {
+      deduped.set(movie.id, movie);
+    }
+
+    const arr = Array.from(deduped.values());
     for (let i = arr.length - 1; i > 0; i--) {
-      const buf = new Uint32Array(1);
-      globalThis.crypto.getRandomValues(buf);
-      const j = buf[0] % (i + 1);
+      const j = randomInt(i + 1);
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
+
     return arr.slice(0, MAX_RESULTS);
   } catch {
     return [];
