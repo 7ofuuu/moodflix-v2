@@ -7,7 +7,7 @@ import { MovieDetails } from '@/types/movie';
 
 
 interface MovieActionsProps {
-  readonly movie: any;
+  readonly movie: MovieDetails;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
