@@ -6,6 +6,7 @@ import { SplitText } from '@/components/ui/split-text';
 import { Reveal } from '@/components/ui/reveal';
 import { useWatchedMovies } from '@/hooks/useWatchedMovies'; // Import your hook
 import { Loader2 } from 'lucide-react';
+import Navbar from "@/components/ui/navbar";
 
 export default function WatchedMoviesPage() {
   // Destructure the data and loading state from your hook
@@ -52,6 +53,8 @@ export default function WatchedMoviesPage() {
   };
 
   return (
+    <>
+    <Navbar />
     <div className='min-h-screen bg-black'>
       <section id='watched-movies' className='container mx-auto px-4 pt-12 pb-12 md:px-7'>
         <div className='mb-8'>
@@ -68,5 +71,6 @@ export default function WatchedMoviesPage() {
 
       <FooterComponent />
     </div>
+    </>
   );
 }

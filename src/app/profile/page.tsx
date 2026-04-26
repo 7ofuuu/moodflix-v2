@@ -9,6 +9,7 @@ import { Avatar } from '@/components/common/avatar';
 import { Button } from '@/components/ui/button';
 import { LogOut, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { useWatchedMovies } from '@/hooks/useWatchedMovies'; //
 
 interface HorizontalScrollSectionProps {
   title: string;
@@ -87,6 +88,7 @@ function HorizontalScrollSection({ title, href, itemCount = 8, children }: Horiz
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { watchlist, isLoaded } = useWatchedMovies();
   const { user, userProfile, isLoading } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -95,6 +97,7 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  const watchedPreview = watchlist.slice(0, 8);
   useEffect(() => {
     if (!isLoading && !user) {
       router.push('/signin');
@@ -311,7 +314,33 @@ export default function ProfilePage() {
         <HorizontalScrollSection title='Favorite Films' href='/films' itemCount={8} />
 
         {/* Watched */}
-        <HorizontalScrollSection title='Watched' href='/watched-movies' itemCount={8} />
+        <HorizontalScrollSection title='Watched' href='/watched-movies' itemCount={8}>
+
+          {!isLoaded ? (
+            // Placeholder skeleton while loading
+            Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex-shrink-0 w-32 md:w-36 aspect-[2/3] bg-slate-900/50 animate-pulse rounded-lg" />
+            ))
+          ) : (
+            watchedPreview.map((movie) => (
+              <Link
+                key={movie.id}
+                href={`/movie/${movie.id}`}
+                className="flex-shrink-0 group relative"
+              >
+                <img
+                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                  alt={movie.title}
+                  className="w-32 md:w-36 aspect-[2/3] object-cover rounded-lg border border-slate-800 group-hover:border-amber-400/50 transition-all shadow-lg"
+                />
+                {/* Optional: Subtle overlay on hover */}
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
+              </Link>
+            ))
+          )}
+
+        </HorizontalScrollSection>
+
 
         {/* Watchlist */}
         <HorizontalScrollSection title='Watchlist' href='/watchlist' itemCount={8} />
