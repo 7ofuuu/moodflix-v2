@@ -23,6 +23,7 @@ function makeRequest(body: unknown) {
 function mockGemini(responseText: string, ok = true) {
   (global.fetch as jest.Mock).mockResolvedValueOnce({
     ok,
+    text: async () => responseText,
     json: async () => ({
       candidates: [{ content: { parts: [{ text: responseText }] } }],
     }),

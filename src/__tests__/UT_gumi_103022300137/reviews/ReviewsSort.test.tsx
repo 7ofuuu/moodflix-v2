@@ -1,47 +1,99 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { ReviewsSort } from '@/components/features/reviews/ReviewsSort';
+import { ReviewsFilters } from '@/components/features/reviews/ReviewsFilters';
 
-jest.mock('@/components/ui/select', () => ({
-  Select: ({ value, onValueChange, children }: {
+jest.mock('@/components/ui/filter-combobox', () => ({
+  FilterCombobox: ({
+    value,
+    onValueChange,
+    placeholder,
+    options,
+  }: {
     value: string;
     onValueChange: (v: string) => void;
-    children: React.ReactNode;
+    placeholder: string;
+    options: { value: string; label: string }[];
   }) => (
     <select
-      data-testid="sort-select"
+      aria-label={placeholder}
       value={value}
       onChange={(e) => onValueChange(e.target.value)}
     >
-      {children}
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
     </select>
-  ),
-  SelectTrigger: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  SelectValue: ({ placeholder }: { placeholder?: string }) => <option value="">{placeholder}</option>,
-  SelectContent: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  SelectItem: ({ value, children }: { value: string; children: React.ReactNode }) => (
-    <option value={value}>{children}</option>
   ),
 }));
 
-describe('ReviewsSort', () => {
-  it('renders with the current sort value selected', () => {
-    render(<ReviewsSort value="created_at.desc" onChange={jest.fn()} />);
-    const select = screen.getByTestId('sort-select') as HTMLSelectElement;
-    expect(select.value).toBe('created_at.desc');
+const defaultProps = {
+  sortBy: 'created_at.desc',
+  selectedGenre: 'all',
+  selectedEra: 'All Eras',
+  minRating: '0',
+  onSortChange: jest.fn(),
+  onGenreChange: jest.fn(),
+  onEraChange: jest.fn(),
+  onMinRatingChange: jest.fn(),
+  onReset: jest.fn(),
+};
+
+describe('ReviewsFilters', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('renders sort dropdown with correct value', () => {
+    render(<ReviewsFilters {...defaultProps} />);
+    const sortSelect = screen.getByLabelText('Sort by') as HTMLSelectElement;
+    expect(sortSelect.value).toBe('created_at.desc');
   });
 
-  it('calls onChange with the new value when selection changes', () => {
-    const handleChange = jest.fn();
-    render(<ReviewsSort value="created_at.desc" onChange={handleChange} />);
-    const select = screen.getByTestId('sort-select');
-    fireEvent.change(select, { target: { value: 'created_at.asc' } });
-    expect(handleChange).toHaveBeenCalledWith('created_at.asc');
+  it('calls onSortChange when sort selection changes', () => {
+    render(<ReviewsFilters {...defaultProps} />);
+    const sortSelect = screen.getByLabelText('Sort by');
+    fireEvent.change(sortSelect, { target: { value: 'vote_average.desc' } });
+    expect(defaultProps.onSortChange).toHaveBeenCalledWith('vote_average.desc');
   });
 
-  it('renders both sort options', () => {
-    render(<ReviewsSort value="created_at.desc" onChange={jest.fn()} />);
-    expect(screen.getByText('Newest First')).toBeInTheDocument();
-    expect(screen.getByText('Oldest First')).toBeInTheDocument();
+  it('renders all 4 sort options', () => {
+    render(<ReviewsFilters {...defaultProps} />);
+    expect(screen.getByText('Newest Review')).toBeInTheDocument();
+    expect(screen.getByText('Oldest Review')).toBeInTheDocument();
+    expect(screen.getByText('Highest Rated Movie')).toBeInTheDocument();
+    expect(screen.getByText('Most Popular Movie')).toBeInTheDocument();
+  });
+
+  it('renders genre, era, and rating filter dropdowns', () => {
+    render(<ReviewsFilters {...defaultProps} />);
+    expect(screen.getByLabelText('All Genres')).toBeInTheDocument();
+    expect(screen.getByLabelText('All Eras')).toBeInTheDocument();
+    expect(screen.getByLabelText('Any Rating')).toBeInTheDocument();
+  });
+
+  it('calls onReset when reset button is clicked', () => {
+    render(<ReviewsFilters {...defaultProps} />);
+    fireEvent.click(screen.getByRole('button', { name: /reset/i }));
+    expect(defaultProps.onReset).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onGenreChange when genre changes', () => {
+    render(<ReviewsFilters {...defaultProps} />);
+    const genreSelect = screen.getByLabelText('All Genres');
+    fireEvent.change(genreSelect, { target: { value: '28' } });
+    expect(defaultProps.onGenreChange).toHaveBeenCalledWith('28');
+  });
+
+  it('calls onEraChange when era selection changes', () => {
+    render(<ReviewsFilters {...defaultProps} />);
+    const eraSelect = screen.getByLabelText('All Eras');
+    fireEvent.change(eraSelect, { target: { value: '2000s' } });
+    expect(defaultProps.onEraChange).toHaveBeenCalledWith('2000s');
+  });
+
+  it('calls onMinRatingChange when min rating selection changes', () => {
+    render(<ReviewsFilters {...defaultProps} />);
+    const ratingSelect = screen.getByLabelText('Any Rating');
+    fireEvent.change(ratingSelect, { target: { value: '7' } });
+    expect(defaultProps.onMinRatingChange).toHaveBeenCalledWith('7');
   });
 });

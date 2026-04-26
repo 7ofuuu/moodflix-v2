@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { QuizTransitionButton } from '@/components/ui/water-drop-transition';
 import { SplitText } from '@/components/ui/split-text';
 import { Reveal } from '@/components/ui/reveal';
@@ -139,7 +139,7 @@ function LastMoodBanner({ mood, isExpanded, onToggle }: LastMoodBannerProps) {
   );
 }
 
-export default function Home() {
+function HomeContent() {
   const [mood, setMood] = useState('cozy');
   const [isMoodDropdownExpanded, setIsMoodDropdownExpanded] = useState(false);
   const moodRef = useRef(mood);
@@ -407,5 +407,13 @@ export default function Home() {
       {/* Floating AI Chat */}
       <AiChat />
     </>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeContent />
+    </Suspense>
   );
 }

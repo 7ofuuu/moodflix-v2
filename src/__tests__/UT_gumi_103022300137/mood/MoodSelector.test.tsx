@@ -12,7 +12,7 @@ jest.mock('next/link', () => {
 
 jest.mock('lucide-react', () => {
   const icon = (name: string) => {
-    const Icon = ({ className, strokeWidth, ...rest }: { className?: string; strokeWidth?: number; [key: string]: unknown }) => (
+    const Icon = ({ className, ...rest }: { className?: string; strokeWidth?: number; [key: string]: unknown }) => (
       <svg data-testid={`icon-${name}`} className={className} {...rest} />
     );
     Icon.displayName = name;
