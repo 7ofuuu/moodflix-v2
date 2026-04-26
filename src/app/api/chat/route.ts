@@ -114,7 +114,7 @@ function extractFirstJsonObject(text: string): string | null {
 function randomInt(maxExclusive: number): number {
   if (maxExclusive <= 1) return 0;
 
-  if (typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto.getRandomValues === 'function') {
+  if (globalThis.crypto !== undefined && globalThis.crypto.getRandomValues !== undefined) {
     const buf = new Uint32Array(1);
     globalThis.crypto.getRandomValues(buf);
     return buf[0] % maxExclusive;

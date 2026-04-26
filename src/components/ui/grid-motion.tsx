@@ -95,6 +95,30 @@ function prependStoredRecommendationPosters(mood: string, dedupeSet: Set<string>
   }
 }
 
+async function fetchPostersFromSource(
+  fetchPage: (page: number) => Promise<GridMotionResponse | null>,
+  dedupeSet: Set<string>
+): Promise<void> {
+  let page = 1;
+  let totalPages = 1;
+  while (dedupeSet.size < TOTAL_ITEMS && page <= totalPages && page <= MAX_FEED_PAGES) {
+    const data = await fetchPage(page);
+    if (!data) break;
+    totalPages = Math.max(1, data.totalPages ?? 1);
+    extractPosterUrls(data, dedupeSet);
+    page += 1;
+  }
+}
+
+function tryLoadFromCache(mood: string, dedupeSet: Set<string>): boolean {
+  const cached = getCachedPosters(mood);
+  if (!cached || cached.length === 0) return false;
+  for (const url of cached) {
+    dedupeSet.add(url);
+  }
+  return dedupeSet.size >= TOTAL_ITEMS;
+}
+
 export default function GridMotion({ items = [], gradientColor = 'black', onPostersReady }: GridMotionProps) {
   const rowRefs = useRef<Array<HTMLDivElement | null>>([]);
   const mouseXRef = useRef(0);
@@ -135,46 +159,19 @@ export default function GridMotion({ items = [], gradientColor = 'black', onPost
       const dedupedPosters = new Set<string>();
       prependStoredRecommendationPosters(activeMood, dedupedPosters);
 
-      const cached = getCachedPosters(activeMood);
-      if (cached && cached.length > 0) {
-        for (const posterUrl of cached) {
-          dedupedPosters.add(posterUrl);
+      if (tryLoadFromCache(activeMood, dedupedPosters)) {
+        if (!cancelled) {
+          setPosterItems(Array.from(dedupedPosters).slice(0, TOTAL_ITEMS));
+          onPostersReady?.();
         }
-
-        if (dedupedPosters.size >= TOTAL_ITEMS) {
-          if (!cancelled) {
-            setPosterItems(Array.from(dedupedPosters).slice(0, TOTAL_ITEMS));
-            onPostersReady?.();
-          }
-          return;
-        }
+        return;
       }
 
-      let page = 1;
-      let totalPages = 1;
-
-      while (dedupedPosters.size < TOTAL_ITEMS && page <= totalPages && page <= MAX_FEED_PAGES) {
-        const data = await fetchMoodFeedPage(activeMood, page);
-        if (!data) {
-          break;
-        }
-        totalPages = Math.max(1, data.totalPages ?? 1);
-        extractPosterUrls(data, dedupedPosters);
-        page += 1;
-      }
-
-      page = 1;
-      totalPages = 1;
-
-      while (dedupedPosters.size < TOTAL_ITEMS && page <= totalPages && page <= MAX_FEED_PAGES) {
-        const data = await fetchNowPlayingPage(page);
-        if (!data) {
-          break;
-        }
-        totalPages = Math.max(1, data.totalPages ?? 1);
-        extractPosterUrls(data, dedupedPosters);
-        page += 1;
-      }
+      await fetchPostersFromSource(
+        (page) => fetchMoodFeedPage(activeMood, page),
+        dedupedPosters
+      );
+      await fetchPostersFromSource(fetchNowPlayingPage, dedupedPosters);
 
       if (!cancelled) {
         const urls = Array.from(dedupedPosters).slice(0, TOTAL_ITEMS);

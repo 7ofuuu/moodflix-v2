@@ -17,7 +17,9 @@ export function MovieActions({ movie }: MovieActionsProps) {
   const [isAdding, setIsAdding] = useState(false);
   const { favorites, toggleFavorite } = useFavorites();
   const isFavorite = favorites.includes(movie.id);
-  const isWatched = isInWatchedlist(movie.id); 
+  const isWatched = isInWatchedlist(movie.id);
+  const innerWatchedLabel = isWatched ? 'Watched' : 'Mark Watched';
+  const watchedButtonLabel = !isLoaded || isAdding ? 'Processing...' : innerWatchedLabel;
 
   const handleToggleWatched = async (e: React.MouseEvent) => {
      e.preventDefault(); 
@@ -61,7 +63,7 @@ export function MovieActions({ movie }: MovieActionsProps) {
         onClick={handleToggleWatched}
       >
         <CheckCircle className={`w-5 h-5 ${isWatched ? 'fill-current' : ''}`} />
-        {!isLoaded || isAdding ? 'Processing...' : isWatched ? 'Watched' : 'Mark Watched'}
+        {watchedButtonLabel}
       </button>
     </div>
   );

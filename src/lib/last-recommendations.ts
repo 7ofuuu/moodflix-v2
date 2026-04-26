@@ -51,7 +51,7 @@ function parseSnapshot(raw: string | null): LastRecommendationsSnapshot | null {
 }
 
 export function getLastRecommendations(): LastRecommendationsSnapshot | null {
-  if (typeof globalThis.window === 'undefined') {
+  if (globalThis.window === undefined) {
     return null;
   }
 
@@ -64,7 +64,7 @@ export function saveLastRecommendations({
   movies,
   source,
 }: SaveLastRecommendationsInput): LastRecommendationsSnapshot | null {
-  if (typeof globalThis.window === 'undefined') {
+  if (globalThis.window === undefined) {
     return null;
   }
 

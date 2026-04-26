@@ -45,7 +45,7 @@ export function useQuizRecommendations() {
       setRecommendations(data.movies || []);
       setSource(data.source ?? null);
 
-      if (typeof globalThis.window !== 'undefined') {
+      if (globalThis.window !== undefined) {
         if ((data.movies ?? []).length > 0) {
           saveLastRecommendations({
             mood,

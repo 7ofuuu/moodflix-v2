@@ -76,6 +76,37 @@ async function fetchMovieReviews(movie: TmdbMovie): Promise<ExtendedReview[]> {
   });
 }
 
+async function buildMoviePool(
+  genreId: string | null,
+  eraRange: (typeof ERA_RANGES)[number] | undefined
+): Promise<TmdbMovie[]> {
+  if ((genreId && genreId !== 'all') || eraRange?.start) {
+    const discoverParams: Record<string, string> = {
+      language: 'en-US',
+      sort_by: 'popularity.desc',
+      page: '1',
+      'vote_count.gte': '50',
+    };
+    if (genreId && genreId !== 'all') discoverParams['with_genres'] = genreId;
+    if (eraRange?.start) {
+      discoverParams['primary_release_date.gte'] = eraRange.start;
+      discoverParams['primary_release_date.lte'] = eraRange.end;
+    }
+    const discovered = await fetchTmdb<PaginatedResponse<TmdbMovie>>('/discover/movie', discoverParams);
+    return (discovered.results ?? []).slice(0, MOVIE_POOL_SIZE);
+  }
+  const trending = await fetchTmdb<PaginatedResponse<TmdbMovie>>('/trending/movie/week', { language: 'en-US' });
+  return (trending.results ?? []).slice(0, MOVIE_POOL_SIZE);
+}
+
+function compareReviews(a: ExtendedReview, b: ExtendedReview, sortBy: SortValue): number {
+  if (sortBy === 'vote_average.desc') return b.movie_vote_average - a.movie_vote_average;
+  if (sortBy === 'popularity.desc') return b.movie_popularity - a.movie_popularity;
+  const dateA = new Date(a.created_at).getTime();
+  const dateB = new Date(b.created_at).getTime();
+  return sortBy === 'created_at.asc' ? dateA - dateB : dateB - dateA;
+}
+
 export async function GET(request: NextRequest) {
   try {
     validateTmdbEnv();
@@ -121,32 +152,7 @@ export async function GET(request: NextRequest) {
 
     // Bulk mode: resolve era + genre filters, fetch movie pool
     const eraRange = ERA_RANGES.find(e => e.label === era);
-    const hasFilters = (genreId && genreId !== 'all') || (eraRange && eraRange.start);
-
-    let movies: TmdbMovie[];
-
-    if (hasFilters) {
-      const discoverParams: Record<string, string> = {
-        language: 'en-US',
-        sort_by: 'popularity.desc',
-        page: '1',
-        'vote_count.gte': '50',
-      };
-
-      if (genreId && genreId !== 'all') discoverParams['with_genres'] = genreId;
-      if (eraRange && eraRange.start) {
-        discoverParams['primary_release_date.gte'] = eraRange.start;
-        discoverParams['primary_release_date.lte'] = eraRange.end;
-      }
-
-      const discovered = await fetchTmdb<PaginatedResponse<TmdbMovie>>('/discover/movie', discoverParams);
-      movies = (discovered.results ?? []).slice(0, MOVIE_POOL_SIZE);
-    } else {
-      const trending = await fetchTmdb<PaginatedResponse<TmdbMovie>>('/trending/movie/week', {
-        language: 'en-US',
-      });
-      movies = (trending.results ?? []).slice(0, MOVIE_POOL_SIZE);
-    }
+    const movies = await buildMoviePool(genreId, eraRange);
 
     // Fetch multiple review pages per movie in parallel
     const allReviews: ExtendedReview[] = [];
@@ -163,14 +169,7 @@ export async function GET(request: NextRequest) {
         })
       : allReviews;
 
-    // Sort
-    filtered.sort((a, b) => {
-      if (sortBy === 'vote_average.desc') return b.movie_vote_average - a.movie_vote_average;
-      if (sortBy === 'popularity.desc') return b.movie_popularity - a.movie_popularity;
-      const dateA = new Date(a.created_at).getTime();
-      const dateB = new Date(b.created_at).getTime();
-      return sortBy === 'created_at.asc' ? dateA - dateB : dateB - dateA;
-    });
+    filtered.sort((a, b) => compareReviews(a, b, sortBy));
 
     const totalResults = filtered.length;
     const totalPages = Math.max(1, Math.ceil(totalResults / REVIEWS_PER_PAGE));

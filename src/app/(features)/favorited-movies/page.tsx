@@ -114,43 +114,45 @@ export default function FavoritedMoviesPage() {
         </div>
 
         {/* CONTENT */}
-        {!user ? (
+        {user ? (
+          isLoading ? (
+            <div className='flex items-center justify-center h-[40vh]'>
+              <Loader2 className='h-8 w-8 animate-spin text-amber-400/60' />
+            </div>
+          ) : movies.length === 0 ? (
+            <div className='flex flex-col items-center justify-center h-[40vh] text-center'>
+              <p className='text-white/50'>No favorite movies yet.</p>
+
+              <a
+                href='/more-movies'
+                className='mt-4 text-amber-400 hover:underline'
+              >
+                Discover movies →
+              </a>
+            </div>
+          ) : (
+            <>
+              <Reveal>
+                <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'>
+                  {paginatedMovies.map((movie) => (
+                    <MovieCard key={movie.id} movie={movie} />
+                  ))}
+                </div>
+              </Reveal>
+
+              {totalPages > 1 && (
+                <PopularPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              )}
+            </>
+          )
+        ) : (
           <div className='flex items-center justify-center h-[40vh] text-center'>
             <p className='text-red-400'>You must be logged in</p>
           </div>
-        ) : isLoading ? (
-          <div className='flex items-center justify-center h-[40vh]'>
-            <Loader2 className='h-8 w-8 animate-spin text-amber-400/60' />
-          </div>
-        ) : movies.length === 0 ? (
-          <div className='flex flex-col items-center justify-center h-[40vh] text-center'>
-            <p className='text-white/50'>No favorite movies yet.</p>
-
-            <a
-              href='/more-movies'
-              className='mt-4 text-amber-400 hover:underline'
-            >
-              Discover movies →
-            </a>
-          </div>
-        ) : (
-          <>
-            <Reveal>
-              <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'>
-                {paginatedMovies.map((movie) => (
-                  <MovieCard key={movie.id} movie={movie} />
-                ))}
-              </div>
-            </Reveal>
-
-            {totalPages > 1 && (
-              <PopularPagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
-            )}
-          </>
         )}
       </section>
 

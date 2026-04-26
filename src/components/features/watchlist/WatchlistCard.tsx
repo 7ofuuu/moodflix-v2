@@ -7,8 +7,8 @@ import { MovieDetails } from "@/types/movie";
 import { Trash2, CheckCircle } from "lucide-react";
 
 interface WatchlistCardProps {
-  movie: MovieDetails;
-  onRemove: (id: number) => void;
+  readonly movie: MovieDetails;
+  readonly onRemove: (id: number) => void;
 }
 
 export function WatchlistCard({ movie, onRemove }: WatchlistCardProps) {
