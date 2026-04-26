@@ -1,30 +1,28 @@
 'use client';
 
-import { useState, useCallback } from 'react';
 import FooterComponent from '@/components/ui/footer';
 import { MovieCard } from '@/components/ui/movie-card';
-import { PopularPagination } from '@/components/features/popular/PopularPagination';
 import { SplitText } from '@/components/ui/split-text';
 import { Reveal } from '@/components/ui/reveal';
-import { useDiscoverMovies } from '@/hooks/useDiscoverMovies';
+import { useWatchedMovies } from '@/hooks/useWatchedMovies'; // Import your hook
 import { Loader2 } from 'lucide-react';
 
 export default function WatchedMoviesPage() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const sortBy = 'popularity.desc';
-
-  const { movies, totalPages, isLoading, error } = useDiscoverMovies({
-    page: currentPage,
-    sortBy,
-  });
-
-  const handlePageChange = useCallback((page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  // Destructure the data and loading state from your hook
+  const { watchlist, isLoaded, isLoggedIn } = useWatchedMovies();
 
   const renderContent = () => {
-    if (isLoading) {
+    // 1. Check if user is logged in
+    if (isLoaded && !isLoggedIn) {
+      return (
+        <div className='py-24 text-center'>
+          <p className='text-white/50'>Please log in to view your watched movies.</p>
+        </div>
+      );
+    }
+
+    // 2. Check loading state
+    if (!isLoaded) {
       return (
         <div className='flex items-center justify-center py-24'>
           <Loader2 className='h-8 w-8 animate-spin text-amber-400/60' />
@@ -32,21 +30,8 @@ export default function WatchedMoviesPage() {
       );
     }
 
-    if (error) {
-      return (
-        <div className='py-24 text-center'>
-          <p className='text-white/50'>{error}</p>
-          <button
-            onClick={() => setCurrentPage(1)}
-            className='mt-4 text-sm text-amber-400 hover:underline'
-          >
-            Try again
-          </button>
-        </div>
-      );
-    }
-
-    if (movies.length === 0) {
+    // 3. Check if the list is empty
+    if (watchlist.length === 0) {
       return (
         <div className='py-24 text-center'>
           <p className='text-white/50'>No watched movies yet.</p>
@@ -54,18 +39,17 @@ export default function WatchedMoviesPage() {
       );
     }
 
+    // 4. Render the stored movies
     return (
       <Reveal>
         <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'>
-          {movies.map(movie => (
+          {watchlist.map(movie => (
             <MovieCard key={movie.id} movie={movie} />
           ))}
         </div>
       </Reveal>
     );
   };
-
-  const showPagination = totalPages > 1 && !isLoading && movies.length > 0;
 
   return (
     <div className='min-h-screen bg-black'>
@@ -75,19 +59,11 @@ export default function WatchedMoviesPage() {
             <SplitText text='Watched Movies' />
           </h1>
           <p className='mt-3 text-sm text-white/50'>
-            Your collection of watched films
+            Your collection of {watchlist.length} watched films
           </p>
         </div>
 
         {renderContent()}
-
-        {showPagination && (
-          <PopularPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        )}
       </section>
 
       <FooterComponent />
