@@ -20,8 +20,9 @@ jest.mock('@/lib/auth-client', () => ({
 }));
 
 // Mock useAuth
+const mockUser = { id: 'test-user-id' };
 jest.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({ user: { id: 'test-user-id' } })
+  useAuth: () => ({ user: mockUser })
 }));
 
 // Mock fetchTmdb
@@ -55,6 +56,10 @@ describe('useWatchlist Hook with Supabase - UT_tubagus_103022300141', () => {
   it('should add a movie to the watchlist', async () => {
     const { result } = renderHook(() => useWatchlist());
     
+    await waitFor(() => {
+      expect(result.current.isLoaded).toBe(true);
+    });
+
     await act(async () => {
       await result.current.addToWatchlist(mockMovie);
     });
@@ -66,6 +71,10 @@ describe('useWatchlist Hook with Supabase - UT_tubagus_103022300141', () => {
   it('should remove a movie from the watchlist', async () => {
     const { result } = renderHook(() => useWatchlist());
     
+    await waitFor(() => {
+      expect(result.current.isLoaded).toBe(true);
+    });
+
     await act(async () => {
       await result.current.addToWatchlist(mockMovie);
     });
@@ -82,6 +91,10 @@ describe('useWatchlist Hook with Supabase - UT_tubagus_103022300141', () => {
   it('should check if a movie is in the watchlist', async () => {
     const { result } = renderHook(() => useWatchlist());
     
+    await waitFor(() => {
+      expect(result.current.isLoaded).toBe(true);
+    });
+
     await act(async () => {
       await result.current.addToWatchlist(mockMovie);
     });

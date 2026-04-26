@@ -9,8 +9,9 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock useAuth since Navbar needs it
+const mockIntegrationUser = { id: 'test-user-id' };
 jest.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({ user: { id: 'test-user-id' }, userProfile: null, isLoading: false })
+  useAuth: () => ({ user: mockIntegrationUser, userProfile: null, isLoading: false })
 }));
 
 // Mock Supabase
