@@ -16,7 +16,7 @@ export function WatchlistGrid({ movies, onRemove }: WatchlistGridProps) {
         </div>
         <h3 className="text-2xl font-bold tracking-tight">Your Watchlist is Empty</h3>
         <p className="text-muted-foreground mt-2 max-w-[400px]">
-          Looks like you haven't added any movies to your watchlist yet. Go discover some movies to watch!
+          Looks like you haven&apos;t added any movies to your watchlist yet. Go discover some movies to watch!
         </p>
       </div>
     );

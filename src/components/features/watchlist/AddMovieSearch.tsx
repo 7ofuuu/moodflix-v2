@@ -89,7 +89,7 @@ export function AddMovieSearch({ onAdd, isInWatchlist }: AddMovieSearchProps) {
               
               {!isLoading && results.length === 0 && query.trim() !== '' && (
                 <div className="text-center py-8 text-slate-500">
-                  No movies found matching "{query}"
+                  No movies found matching &quot;{query}&quot;
                 </div>
               )}
 

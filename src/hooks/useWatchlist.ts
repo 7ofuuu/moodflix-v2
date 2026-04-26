@@ -25,7 +25,7 @@ export function useWatchlist() {
 
         if (error) throw error;
         if (data && data.length > 0) {
-          const moviePromises = data.map((row: any) => 
+          const moviePromises = data.map((row: { movie_id: number }) => 
             fetchTmdb<MovieDetails>(`/movie/${row.movie_id}`)
           );
           const fetchedMovies = await Promise.all(moviePromises);
