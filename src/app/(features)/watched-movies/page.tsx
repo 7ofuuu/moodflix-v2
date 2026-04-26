@@ -11,25 +11,61 @@ import { Loader2 } from 'lucide-react';
 
 export default function WatchedMoviesPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortBy, setSortBy] = useState('popularity.desc');
+  const sortBy = 'popularity.desc';
 
   const { movies, totalPages, isLoading, error } = useDiscoverMovies({
     page: currentPage,
     sortBy,
   });
 
-  const handleFilterChange = useCallback(
-    (setter: (v: string) => void) => (value: string) => {
-      setter(value);
-      setCurrentPage(1);
-    },
-    []
-  );
-
   const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className='flex items-center justify-center py-24'>
+          <Loader2 className='h-8 w-8 animate-spin text-amber-400/60' />
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className='py-24 text-center'>
+          <p className='text-white/50'>{error}</p>
+          <button
+            onClick={() => setCurrentPage(1)}
+            className='mt-4 text-sm text-amber-400 hover:underline'
+          >
+            Try again
+          </button>
+        </div>
+      );
+    }
+
+    if (movies.length === 0) {
+      return (
+        <div className='py-24 text-center'>
+          <p className='text-white/50'>No watched movies yet.</p>
+        </div>
+      );
+    }
+
+    return (
+      <Reveal>
+        <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'>
+          {movies.map(movie => (
+            <MovieCard key={movie.id} movie={movie} />
+          ))}
+        </div>
+      </Reveal>
+    );
+  };
+
+  const showPagination = totalPages > 1 && !isLoading && movies.length > 0;
 
   return (
     <div className='min-h-screen bg-black'>
@@ -43,35 +79,9 @@ export default function WatchedMoviesPage() {
           </p>
         </div>
 
-        {isLoading ? (
-          <div className='flex items-center justify-center py-24'>
-            <Loader2 className='h-8 w-8 animate-spin text-amber-400/60' />
-          </div>
-        ) : error ? (
-          <div className='py-24 text-center'>
-            <p className='text-white/50'>{error}</p>
-            <button
-              onClick={() => setCurrentPage(1)}
-              className='mt-4 text-sm text-amber-400 hover:underline'
-            >
-              Try again
-            </button>
-          </div>
-        ) : movies.length === 0 ? (
-          <div className='py-24 text-center'>
-            <p className='text-white/50'>No watched movies yet.</p>
-          </div>
-        ) : (
-          <Reveal>
-            <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'>
-              {movies.map(movie => (
-                <MovieCard key={movie.id} movie={movie} />
-              ))}
-            </div>
-          </Reveal>
-        )}
+        {renderContent()}
 
-        {totalPages > 1 && !isLoading && movies.length > 0 && (
+        {showPagination && (
           <PopularPagination
             currentPage={currentPage}
             totalPages={totalPages}
