@@ -2,6 +2,22 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MovieActions } from '@/components/features/movie/MovieActions';
 
+jest.mock('@/hooks/useFavorites', () => ({
+  useFavorites: () => {
+    const { useState } = require('react');
+    const [favorites, setFavorites] = useState([]);
+    return {
+      favorites,
+      isLoading: false,
+      toggleFavorite: (id: number) => {
+        setFavorites((prev: number[]) =>
+          prev.includes(id) ? prev.filter((f: number) => f !== id) : [...prev, id]
+        );
+      },
+    };
+  },
+}));
+
 jest.mock('lucide-react', () => {
   const icon = (name: string) => {
     const Icon = ({ className }: { className?: string }) => (

@@ -31,10 +31,13 @@ export function ReviewsMovieSearch({
   const containerRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
+  // Derived state: when query is empty, treat suggestions/open as cleared without
+  // calling setState synchronously inside the effect (avoids react-hooks/set-state-in-effect).
+  const activeSuggestions = debouncedQuery.trim() ? suggestions : [];
+  const isOpen = debouncedQuery.trim() ? open : false;
+
   useEffect(() => {
     if (!debouncedQuery.trim()) {
-      setSuggestions([]);
-      setOpen(false);
       return;
     }
 
@@ -126,19 +129,20 @@ export function ReviewsMovieSearch({
         type='text'
         value={query}
         onChange={e => setQuery(e.target.value)}
-        onFocus={() => suggestions.length > 0 && setOpen(true)}
+        onFocus={() => activeSuggestions.length > 0 && setOpen(true)}
         placeholder='Search a movie to see its reviews...'
         maxLength={200}
         className='w-full rounded-full border border-white/15 bg-white/5 py-3 pl-11 pr-4 text-sm text-white placeholder:text-white/35 outline-none transition-all duration-200 focus:border-amber-400/40 focus:bg-white/[0.08] focus:ring-1 focus:ring-amber-400/20'
+        role='combobox'
         aria-label='Search movie for reviews'
         aria-autocomplete='list'
-        aria-expanded={open}
+        aria-expanded={isOpen}
       />
 
-      {open && suggestions.length > 0 && (
+      {isOpen && activeSuggestions.length > 0 && (
         <div className='absolute top-full z-50 mt-2 w-full rounded-xl border border-white/10 bg-zinc-900 shadow-2xl'>
           <ul role='listbox'>
-            {suggestions.map(movie => {
+            {activeSuggestions.map(movie => {
               const year = movie.release_date ? movie.release_date.slice(0, 4) : '';
               return (
                 <li key={movie.id} role='option' aria-selected={false}>
