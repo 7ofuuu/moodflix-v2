@@ -7,12 +7,7 @@ import { fetchLastMood } from '@/lib/mood-history';
 import { setSessionExpiry, clearMoodCache } from '@/lib/movie-cache';
 import { LAST_MOOD_EVENT, LAST_MOOD_STORAGE_KEY } from '@/lib/mood';
 import type { User } from '@supabase/supabase-js';
-
-interface UserProfile {
-  id: string;
-  avatar_url: string | null;
-  full_name: string | null;
-}
+import type { UserProfile } from '@/types/auth';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);

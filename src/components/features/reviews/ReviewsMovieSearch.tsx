@@ -5,12 +5,7 @@ import { Search, Loader2, X } from 'lucide-react';
 import Image from 'next/image';
 import { useDebounce } from '@/hooks/useDebounce';
 import type { MovieDetails } from '@/types/movie';
-
-interface SelectedMovie {
-  id: number;
-  title: string;
-  poster_path: string | null;
-}
+import type { SelectedMovie } from '@/types/page';
 
 interface ReviewsMovieSearchProps {
   selectedMovie: SelectedMovie | null;

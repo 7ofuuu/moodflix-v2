@@ -4,14 +4,10 @@ import { MOOD_GENRE_MAP, VALID_ACTIONS } from '@/lib/mood';
 import { fetchTmdb, validateTmdbEnv } from '@/lib/tmdb';
 import type { ActionType } from '@/lib/mood';
 import type { MovieDetails, PaginatedResponse } from '@/types/movie';
+import type { GeminiRecommendation, TmdbMovieDetail } from '@/types/api';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const MAX_RECOMMENDATIONS = 5;
-
-interface GeminiRecommendation {
-  movieIds: number[];
-  reasons: Array<{ id: number; reason: string }>;
-}
 
 interface CandidateMovie {
   id: number;
@@ -19,16 +15,6 @@ interface CandidateMovie {
   release_date: string;
   vote_average: number;
   genre_ids?: number[];
-}
-
-interface TmdbMovieDetail {
-  id: number;
-  title: string;
-  poster_path: string | null;
-  release_date: string;
-  vote_average: number;
-  overview: string;
-  genres?: Array<{ name: string }>;
 }
 
 function extractFirstJsonObject(value: string): string | null {
