@@ -10,13 +10,8 @@ import { PopularPagination } from '@/components/features/popular/PopularPaginati
 import { SplitText } from '@/components/ui/split-text';
 import { Reveal } from '@/components/ui/reveal';
 import { useMovieReviews } from '@/hooks/useMovieReviews';
+import type { SelectedMovie } from '@/types/page';
 import { Loader2 } from 'lucide-react';
-
-interface SelectedMovie {
-  id: number;
-  title: string;
-  poster_path: string | null;
-}
 
 export default function ReviewsPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -128,7 +123,7 @@ export default function ReviewsPage() {
             <p className='text-white/50'>No reviews found.</p>
           </div>
         ) : (
-          <Reveal>
+          <Reveal threshold={0}>
             <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
               {reviews.map(review => (
                 <ReviewCard key={review.id} review={review} />

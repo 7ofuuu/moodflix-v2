@@ -14,15 +14,7 @@ import {
   Heart,
   Compass,
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
-
-interface Mood {
-  id: string;
-  name: string;
-  Icon: LucideIcon;
-  iconColor: string;
-  description: string;
-}
+import type { Mood } from '@/types/components';
 
 const MOODS: Mood[] = [
   { id: 'happy',       name: 'Happy',       Icon: Smile,    iconColor: 'text-amber-400',   description: 'Bright stories with uplifting energy' },

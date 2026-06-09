@@ -4,16 +4,12 @@ import { MOOD_GENRE_MAP, VALID_ACTIONS, isMoodKey } from '@/lib/mood';
 import { fetchTmdb } from '@/lib/tmdb';
 import type { ActionType } from '@/lib/mood';
 import type { PaginatedResponse, MovieDetails } from '@/types/movie';
+import type { ChatMessage } from '@/types/chat';
 
 const GEMINI_CHAT_MODEL = 'gemini-2.5-flash-lite';
 const MAX_RESULTS = 50;
 const DISCOVER_PAGE_POOL = 8;
 const DISCOVER_SAMPLE_PAGES = 5;
-
-interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
 
 const MOOD_ALIASES: Record<string, string> = {
   // English aliases
