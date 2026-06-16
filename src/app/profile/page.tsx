@@ -12,21 +12,10 @@ import { logger } from '@/lib/logger';
 import { useFavorites } from '@/hooks/useFavorites';
 import Image from 'next/image';
 import { useWatchedMovies } from '@/hooks/useWatchedMovies';
+import type { HorizontalScrollSectionProps } from '@/types/components';
+import type { TmdbMovieDetail } from '@/types/api';
 
 const WATCHED_SKELETON_KEYS = ['sk-w-0', 'sk-w-1', 'sk-w-2', 'sk-w-3', 'sk-w-4'];
-
-interface HorizontalScrollSectionProps {
-  readonly title: string;
-  readonly href: string;
-  readonly itemCount?: number;
-  readonly children?: React.ReactNode;
-}
-
-interface Movie {
-  id: number;
-  title: string;
-  poster_path: string;
-}
 
 function HorizontalScrollSection({ title, href, itemCount = 8, children }: HorizontalScrollSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -106,7 +95,7 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const { favorites } = useFavorites();
-  const [favoriteMovies, setFavoriteMovies] = useState<Movie[]>([]);
+  const [favoriteMovies, setFavoriteMovies] = useState<TmdbMovieDetail[]>([]);
 
   useEffect(() => {
     async function fetchMovies() {

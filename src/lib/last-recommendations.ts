@@ -1,17 +1,10 @@
 import { MovieDetails } from '@/types/movie';
-import {
-  LAST_ACTION_STORAGE_KEY,
-  LAST_MOOD_EVENT,
-  LAST_MOOD_STORAGE_KEY,
-  LAST_MOOD_UPDATED_KEY,
-  normalizeMood,
-} from '@/lib/mood';
+import type { RecommendationSource } from '@/types/hooks';
+import { LAST_ACTION_STORAGE_KEY, LAST_MOOD_EVENT, LAST_MOOD_STORAGE_KEY, LAST_MOOD_UPDATED_KEY, normalizeMood } from '@/lib/mood';
 
 export const LAST_RECOMMENDATIONS_STORAGE_KEY = 'moodflix:lastRecommendations';
 
 const MAX_STORED_RECOMMENDATIONS = 50;
-
-export type RecommendationSource = 'quiz' | 'ai-chat';
 
 export interface LastRecommendationsSnapshot {
   mood: string;
@@ -42,7 +35,7 @@ function parseSnapshot(raw: string | null): LastRecommendationsSnapshot | null {
       mood: normalizeMood(parsed.mood),
       action: typeof parsed.action === 'string' ? parsed.action : null,
       movies: parsed.movies.slice(0, MAX_STORED_RECOMMENDATIONS),
-      source: parsed.source === 'ai-chat' ? 'ai-chat' : 'quiz',
+      source: (parsed.source === 'ai-chat' ? 'ai-chat' : 'quiz') as 'quiz' | 'ai-chat',
       updatedAt: typeof parsed.updatedAt === 'string' ? parsed.updatedAt : new Date().toISOString(),
     };
   } catch {

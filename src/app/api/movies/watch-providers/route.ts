@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { fetchTmdb, validateTmdbEnv } from '@/lib/tmdb';
 
-interface TmdbProviderResponse {
+interface TmdbProviderResponseDetail {
   results: Array<{
     provider_id: number;
     provider_name: string;
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const url = new URL(request.url);
     const watchRegion = url.searchParams.get('watch_region') ?? 'US';
 
-    const data = await fetchTmdb<TmdbProviderResponse>('/watch/providers/movie', {
+    const data = await fetchTmdb<TmdbProviderResponseDetail>('/watch/providers/movie', {
       watch_region: watchRegion,
       language: 'en-US',
     });

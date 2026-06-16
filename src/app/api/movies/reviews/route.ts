@@ -4,20 +4,7 @@ import { fetchTmdb, validateTmdbEnv } from '@/lib/tmdb';
 import { sanitizeIntParam } from '@/lib/sanitize';
 import { ERA_RANGES } from '@/lib/constants';
 import type { PaginatedResponse, MovieReview } from '@/types/movie';
-
-interface TmdbReview {
-  id: string;
-  author: string;
-  author_details: {
-    name: string;
-    username: string;
-    avatar_path: string | null;
-    rating: number | null;
-  };
-  content: string;
-  created_at: string;
-  url: string;
-}
+import type { TmdbReview } from '@/types/api';
 
 interface TmdbMovie {
   id: number;

@@ -1,23 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { logger } from '@/lib/logger';
 import { MovieReview } from '@/types/movie';
-
-interface ReviewParams {
-  page: number;
-  movieId?: number;
-  sortBy?: string;
-  genreId?: string;
-  era?: string;
-  minRating?: string;
-}
-
-interface ReviewsResult {
-  reviews: MovieReview[];
-  totalPages: number;
-  totalResults: number;
-  isLoading: boolean;
-  error: string | null;
-}
+import type { ReviewParams, ReviewsResult } from '@/types/hooks';
 
 export function useMovieReviews(params: ReviewParams): ReviewsResult {
   const [reviews, setReviews] = useState<MovieReview[]>([]);

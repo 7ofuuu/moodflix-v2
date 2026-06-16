@@ -2,25 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { logger } from '@/lib/logger';
 import { MovieDetails } from '@/types/movie';
 import { useDebounce } from './useDebounce';
-
-export interface DiscoverParams {
-  page: number;
-  query?: string;
-  sortBy?: string;
-  genreId?: number;
-  mood?: string;
-  eraStart?: string;
-  eraEnd?: string;
-  watchProviders?: number[];
-}
-
-interface DiscoverResult {
-  movies: MovieDetails[];
-  totalPages: number;
-  totalResults: number;
-  isLoading: boolean;
-  error: string | null;
-}
+import type { DiscoverParams, DiscoverResult } from '@/types/hooks';
 
 export function useDiscoverMovies(params: DiscoverParams): DiscoverResult {
   const [movies, setMovies] = useState<MovieDetails[]>([]);

@@ -1,9 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
-
-interface MoodHistoryRow {
-  mood: string;
-}
+import type { MoodHistoryRow } from '@/types/database';
 
 export async function saveMoodHistory(
   supabase: SupabaseClient,

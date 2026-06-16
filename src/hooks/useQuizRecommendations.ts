@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MovieDetails } from '@/types/movie';
+import type { RecommendationResponse } from '@/types/hooks';
 import {
   LAST_ACTION_STORAGE_KEY,
   LAST_MOOD_EVENT,
@@ -10,11 +11,6 @@ import { saveLastRecommendations } from '@/lib/last-recommendations';
 import { supabase } from '@/lib/auth-client';
 import { saveMoodHistory } from '@/lib/mood-history';
 import { invalidateCache } from '@/lib/movie-cache';
-
-interface RecommendationResponse {
-  movies: MovieDetails[];
-  source?: 'gemini-hybrid' | 'tmdb-fallback';
-}
 
 export function useQuizRecommendations() {
   const [recommendations, setRecommendations] = useState<MovieDetails[]>([]);
