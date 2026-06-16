@@ -7,8 +7,7 @@ import { ActionSelector } from '@/components/features/quiz/ActionSelector';
 import { MovieRecommendations } from '@/components/features/quiz/MovieRecommendations';
 import { useQuizRecommendations } from '@/hooks/useQuizRecommendations';
 import { isMoodKey } from '@/lib/mood';
-
-type QuizStep = 'mood' | 'action' | 'results';
+import type { QuizStep } from '@/types/page';
 
 function QuizPageContent() {
   const searchParams = useSearchParams();
@@ -43,7 +42,7 @@ function QuizPageContent() {
   return (
     <>
       <section className='quiz-fullscreen-surface relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] min-h-screen w-screen px-4 py-12 md:px-7 md:py-16'>
-        <div className='mx-auto w-full max-w-[1600px]'>
+        <div className='mx-auto w-full max-w-400'>
           <div className={`mx-auto w-full ${step === 'results' ? '' : 'max-w-5xl'}`}>
             {step === 'mood' && (
               <MoodSelector
@@ -66,7 +65,6 @@ function QuizPageContent() {
             {step === 'results' && (
               <MovieRecommendations
                 recommendations={recommendations}
-                isLoading={isLoading}
                 error={error}
                 source={source}
                 onReset={handleReset}

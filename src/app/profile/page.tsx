@@ -9,13 +9,13 @@ import { Avatar } from '@/components/common/avatar';
 import { Button } from '@/components/ui/button';
 import { LogOut, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { useFavorites } from '@/hooks/useFavorites';
+import Image from 'next/image';
+import { useWatchedMovies } from '@/hooks/useWatchedMovies';
+import type { HorizontalScrollSectionProps } from '@/types/components';
+import type { TmdbMovieDetail } from '@/types/api';
 
-interface HorizontalScrollSectionProps {
-  title: string;
-  href: string;
-  itemCount?: number;
-  children?: React.ReactNode;
-}
+const WATCHED_SKELETON_KEYS = ['sk-w-0', 'sk-w-1', 'sk-w-2', 'sk-w-3', 'sk-w-4'];
 
 function HorizontalScrollSection({ title, href, itemCount = 8, children }: HorizontalScrollSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -41,9 +41,7 @@ function HorizontalScrollSection({ title, href, itemCount = 8, children }: Horiz
     <section className='space-y-4'>
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-3'>
-          <h2 className='text-sm font-semibold uppercase tracking-wider text-slate-400'>
-            {title}
-          </h2>
+          <h2 className='text-sm font-semibold uppercase tracking-wider text-slate-400'>{title}</h2>
           <Link
             href={href}
             className='flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 transition-colors'
@@ -74,12 +72,13 @@ function HorizontalScrollSection({ title, href, itemCount = 8, children }: Horiz
         className='flex gap-4 overflow-x-auto scrollbar-hide pb-2'
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {children || placeholderCards.map((card) => (
-          <div
-            key={card.id}
-            className='flex-shrink-0 w-36 sm:w-40 md:w-44 aspect-[2/3] bg-slate-900/50 border border-slate-800/50 rounded-lg hover:border-slate-700/50 transition-colors'
-          />
-        ))}
+        {children ||
+          placeholderCards.map(card => (
+            <div
+              key={card.id}
+              className='shrink-0 w-36 sm:w-40 md:w-44 aspect-2/3 bg-slate-900/50 border border-slate-800/50 rounded-lg hover:border-slate-700/50 transition-colors'
+            />
+          ))}
       </div>
     </section>
   );
@@ -87,6 +86,7 @@ function HorizontalScrollSection({ title, href, itemCount = 8, children }: Horiz
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { watchlist, isLoaded } = useWatchedMovies();
   const { user, userProfile, isLoading } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -94,7 +94,39 @@ export default function ProfilePage() {
   const [bio, setBio] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const { favorites } = useFavorites();
+  const [favoriteMovies, setFavoriteMovies] = useState<TmdbMovieDetail[]>([]);
 
+  useEffect(() => {
+    async function fetchMovies() {
+      if (!favorites.length) {
+        setFavoriteMovies([]);
+        return;
+      }
+
+      try {
+        const movies = await Promise.all(
+          favorites.slice(0, 8).map(async id => {
+            const res = await fetch(`https://api.themoviedb.org/3/movie/${id}`, {
+              headers: {
+                Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_TOKEN}`,
+              },
+            });
+
+            return res.json();
+          }),
+        );
+
+        setFavoriteMovies(movies);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    fetchMovies();
+  }, [favorites]);
+
+  const watchedPreview = watchlist.slice(0, 8);
   useEffect(() => {
     if (!isLoading && !user) {
       router.push('/signin');
@@ -133,7 +165,9 @@ export default function ProfilePage() {
     setSuccessMessage('');
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (!session?.access_token) {
         throw new Error('No access token available');
@@ -143,7 +177,7 @@ export default function ProfilePage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           full_name: fullName,
@@ -190,7 +224,7 @@ export default function ProfilePage() {
           <div className='flex items-center justify-between gap-6'>
             {/* Left: Avatar & Name */}
             <div className='flex items-center gap-4'>
-              <div className='w-20 h-20 rounded-full ring-2 ring-slate-700 overflow-hidden flex-shrink-0'>
+              <div className='w-20 h-20 rounded-full ring-2 ring-slate-700 overflow-hidden shrink-0'>
                 <Avatar
                   avatarUrl={userProfile?.avatar_url}
                   fullName={userProfile?.full_name}
@@ -200,12 +234,8 @@ export default function ProfilePage() {
                 />
               </div>
               <div>
-                <h1 className='text-3xl font-black text-white'>
-                  {fullName || user?.email?.split('@')[0] || 'User'}
-                </h1>
-                <p className='text-slate-400 text-sm'>
-                  {user?.email}
-                </p>
+                <h1 className='text-3xl font-black text-white'>{fullName || user?.email?.split('@')[0] || 'User'}</h1>
+                <p className='text-slate-400 text-sm'>{user?.email}</p>
               </div>
             </div>
 
@@ -224,14 +254,20 @@ export default function ProfilePage() {
                 className='p-2 hover:bg-slate-800/50 rounded-lg transition-colors'
                 title='Edit profile'
               >
-                <Edit2 size={20} className='text-slate-400 hover:text-amber-400' />
+                <Edit2
+                  size={20}
+                  className='text-slate-400 hover:text-amber-400'
+                />
               </button>
               <button
                 onClick={handleLogout}
                 className='p-2 hover:bg-slate-800/50 rounded-lg transition-colors'
                 title='Logout'
               >
-                <LogOut size={20} className='text-slate-400 hover:text-red-400' />
+                <LogOut
+                  size={20}
+                  className='text-slate-400 hover:text-red-400'
+                />
               </button>
             </div>
           </div>
@@ -242,43 +278,43 @@ export default function ProfilePage() {
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12'>
         {/* About Section */}
         <section>
-          <h2 className='text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4'>
-            About
-          </h2>
+          <h2 className='text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4'>About</h2>
           {isEditing ? (
             <div className='space-y-4'>
               <div>
-                <label htmlFor='profile-name' className='block text-sm text-slate-300 mb-2'>Name</label>
+                <label
+                  htmlFor='profile-name'
+                  className='block text-sm text-slate-300 mb-2'
+                >
+                  Name
+                </label>
                 <input
                   id='profile-name'
                   type='text'
                   value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  onChange={e => setFullName(e.target.value)}
                   placeholder='Your name'
                   className='w-full bg-slate-900/50 border border-slate-700/50 rounded-lg px-3 py-2 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400/50'
                 />
               </div>
               <div>
-                <label htmlFor='profile-bio' className='block text-sm text-slate-300 mb-2'>Bio</label>
+                <label
+                  htmlFor='profile-bio'
+                  className='block text-sm text-slate-300 mb-2'
+                >
+                  Bio
+                </label>
                 <textarea
                   id='profile-bio'
                   value={bio}
-                  onChange={(e) => setBio(e.target.value)}
+                  onChange={e => setBio(e.target.value)}
                   placeholder='Tell us about yourself...'
                   rows={4}
                   className='w-full bg-slate-900/50 border border-slate-700/50 rounded-lg px-3 py-2 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400/50 resize-none'
                 />
               </div>
-              {error && (
-                <div className='p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm'>
-                  {error}
-                </div>
-              )}
-              {successMessage && (
-                <div className='p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-sm'>
-                  {successMessage}
-                </div>
-              )}
+              {error && <div className='p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm'>{error}</div>}
+              {successMessage && <div className='p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-sm'>{successMessage}</div>}
               <div className='flex gap-3'>
                 <Button
                   onClick={handleSaveProfile}
@@ -301,20 +337,76 @@ export default function ProfilePage() {
               </div>
             </div>
           ) : (
-            <div className='text-slate-300'>
-              {bio || 'No bio added yet'}
-            </div>
+            <div className='text-slate-300'>{bio || 'No bio added yet'}</div>
           )}
         </section>
 
         {/* Favorite Films */}
-        <HorizontalScrollSection title='Favorite Films' href='/films' itemCount={8} />
+        <HorizontalScrollSection
+          title='Favorite Films'
+          href='/favorited-movies'
+        >
+          {favoriteMovies.length === 0 ? (
+            <div className='text-slate-400 text-sm px-2'>No favorite movies yet.</div>
+          ) : (
+            favoriteMovies.map(movie => (
+              <div
+                key={movie.id}
+                className='shrink-0 w-36 sm:w-40 md:w-44'
+              >
+                {movie.poster_path ? (
+                  <Image
+                    src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
+                    alt={movie.title}
+                    width={176}
+                    height={264}
+                    className='rounded-lg'
+                  />
+                ) : (
+                  <div className='w-full h-66 bg-slate-900/50 border border-slate-800/50 rounded-lg flex items-center justify-center text-slate-400 text-sm'>No Image</div>
+                )}
+              </div>
+            ))
+          )}
+        </HorizontalScrollSection>
 
         {/* Watched */}
-        <HorizontalScrollSection title='Watched' href='/watched-movies' itemCount={8} />
+        <HorizontalScrollSection
+          title='Watched'
+          href='/watched-movies'
+          itemCount={8}
+        >
+          {isLoaded
+            ? watchedPreview.map(movie => (
+                <Link
+                  key={movie.id}
+                  href={`/movie/${movie.id}`}
+                  className='shrink-0 group relative'
+                >
+                  <Image
+                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                    alt={movie.title}
+                    width={144}
+                    height={216}
+                    className='w-32 md:w-36 aspect-2/3 object-cover rounded-lg border border-slate-800 group-hover:border-amber-400/50 transition-all shadow-lg'
+                  />
+                  <div className='absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg' />
+                </Link>
+              ))
+            : WATCHED_SKELETON_KEYS.map(key => (
+                <div
+                  key={key}
+                  className='shrink-0 w-32 md:w-36 aspect-2/3 bg-slate-900/50 animate-pulse rounded-lg'
+                />
+              ))}
+        </HorizontalScrollSection>
 
         {/* Watchlist */}
-        <HorizontalScrollSection title='Watchlist' href='/watchlist' itemCount={8} />
+        <HorizontalScrollSection
+          title='Watchlist'
+          href='/watchlist'
+          itemCount={8}
+        />
       </div>
     </div>
   );

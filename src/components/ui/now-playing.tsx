@@ -36,6 +36,9 @@ export default function NowPlaying() {
 
   const canLoadMore = currentPage < totalPages && !isLoading && !isLoadingMore;
 
+  const GRID_COLS = 5;
+  const snapToGrid = (n: number) => (n < GRID_COLS ? n : Math.floor(n / GRID_COLS) * GRID_COLS);
+
   const loadPage = useCallback(async (page: number, append: boolean) => {
     if (append) {
       setIsLoadingMore(true);
@@ -63,7 +66,7 @@ export default function NowPlaying() {
       } else {
         const movies = data.movies ?? [];
         setNowPlayingMovies(movies);
-        setInitialCount(movies.length);
+        setInitialCount(snapToGrid(movies.length));
       }
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Failed to load movies');
@@ -89,7 +92,9 @@ export default function NowPlaying() {
     await loadPage(currentPage + 1, true);
   }, [canLoadMore, currentPage, loadPage]);
 
-  const displayedMovies = isExpanded ? nowPlayingMovies : nowPlayingMovies.slice(0, initialCount || nowPlayingMovies.length);
+  const displayedMovies = isExpanded
+    ? nowPlayingMovies.slice(0, snapToGrid(nowPlayingMovies.length))
+    : nowPlayingMovies.slice(0, initialCount || nowPlayingMovies.length);
   const showMoreButton = canLoadMore;
   const showLessButton = isExpanded && nowPlayingMovies.length > initialCount;
 

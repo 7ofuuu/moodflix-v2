@@ -71,4 +71,38 @@ describe('ReviewCard', () => {
     render(<ReviewCard review={baseReview} />);
     expect(screen.queryByRole('button', { name: /read more/i })).not.toBeInTheDocument();
   });
+
+  it('does not render star icon or rating when rating is null', () => {
+    const noRating: MovieReview = {
+      ...baseReview,
+      author_details: { ...baseReview.author_details, rating: null },
+    };
+    render(<ReviewCard review={noRating} />);
+    expect(screen.queryByTestId('star-icon')).not.toBeInTheDocument();
+    expect(screen.queryByText(/\/10/)).not.toBeInTheDocument();
+  });
+
+  it('renders author initial badge when avatar_path is null', () => {
+    render(<ReviewCard review={baseReview} />);
+    // baseReview has avatar_path: null, so fallback initial 'B' is shown
+    expect(screen.getByText('B')).toBeInTheDocument();
+    expect(screen.queryByAltText('Bob')).not.toBeInTheDocument();
+  });
+
+  it('renders avatar image when avatar_path is provided', () => {
+    const withAvatar: MovieReview = {
+      ...baseReview,
+      author_details: { ...baseReview.author_details, avatar_path: '/avatars/bob.jpg' },
+    };
+    render(<ReviewCard review={withAvatar} />);
+    const avatarImg = screen.getByAltText('Bob') as HTMLImageElement;
+    expect(avatarImg).toBeInTheDocument();
+    expect(avatarImg.src).toContain('bob.jpg');
+  });
+
+  it('does not render movie poster when movie_poster_path is null', () => {
+    const noPoster: MovieReview = { ...baseReview, movie_poster_path: null };
+    render(<ReviewCard review={noPoster} />);
+    expect(screen.queryByAltText('Awesome Movie')).not.toBeInTheDocument();
+  });
 });

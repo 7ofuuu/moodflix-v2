@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 interface AvatarProps {
   avatarUrl?: string | null;
   fullName?: string | null;
@@ -54,11 +56,15 @@ export function Avatar({
     return colors[index];
   };
 
+  const sizePx = { sm: 32, md: 40, lg: 48 }[size];
+
   if (avatarUrl) {
     return (
-      <img
+      <Image
         src={avatarUrl}
         alt={fullName || 'User avatar'}
+        width={sizePx}
+        height={sizePx}
         className={`${sizeClasses[size]} rounded-full object-cover border-2 border-amber-400/50 ${className}`}
       />
     );
