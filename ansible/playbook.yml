@@ -1,0 +1,145 @@
+---
+- name: Provision Kubernetes Infrastructure
+  hosts: kubernetes_servers
+  become: yes
+  gather_facts: yes
+
+  vars:
+    kubernetes_version: "1.28"
+    docker_daemon_options:
+      storage-driver: "overlay2"
+
+  tasks:
+    # ============================================
+    # SYSTEM UPDATES
+    # ============================================
+    - name: Update system packages
+      dnf:
+        name: '*'
+        state: latest
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: Install EPEL repository
+      dnf:
+        name: epel-release
+        state: present
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: Install basic dependencies
+      dnf:
+        name:
+          - git
+          - curl
+          - wget
+          - vim
+          - htop
+          - net-tools
+          - jq
+        state: present
+      when: ansible_facts['os_family'] == "RedHat"
+
+    # ============================================
+    # DOCKER INSTALLATION
+    # ============================================
+    - name: Install Docker (AlmaLinux/CentOS/RHEL)
+      block:
+        - name: Add Docker repository
+          shell: |
+            dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+
+        - name: Install Docker
+          dnf:
+            name:
+              - docker-ce
+              - docker-ce-cli
+              - containerd.io
+              - docker-compose-plugin
+            state: present
+
+        - name: Start Docker service
+          systemd:
+            name: docker
+            state: started
+            enabled: yes
+
+        - name: Add user to docker group
+          user:
+            name: "{{ ansible_user }}"
+            groups: docker
+            append: yes
+
+      when: ansible_facts['os_family'] == "RedHat"
+
+    # ============================================
+    # KUBECTL INSTALLATION
+    # ============================================
+    - name: Add Kubernetes repository
+      yum_repository:
+        name: kubernetes
+        description: Kubernetes Repository
+        baseurl: https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/rpm/
+        gpgkey: https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/rpm/repodata/repomd.xml.key
+        gpgcheck: yes
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: Install kubectl
+      dnf:
+        name: kubectl
+        state: present
+      when: ansible_facts['os_family'] == "RedHat"
+
+    # ============================================
+    # MINIKUBE INSTALLATION
+    # ============================================
+    - name: Download Minikube
+      get_url:
+        url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        dest: /usr/local/bin/minikube
+        mode: '0755'
+        force: yes
+
+    - name: Verify Minikube installation
+      shell: /usr/local/bin/minikube version
+      register: minikube_version
+
+    # ============================================
+    # HELM INSTALLATION
+    # ============================================
+    - name: Check if Helm is already installed
+      stat:
+        path: /usr/local/bin/helm
+      register: helm_check
+
+    - name: Install Helm
+      shell: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      when: not helm_check.stat.exists
+      register: helm_install
+      ignore_errors: yes
+
+    - name: Ensure Helm is executable
+      file:
+        path: /usr/local/bin/helm
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: Verify Helm installation
+      shell: /usr/local/bin/helm version
+      register: helm_version
+
+    # ============================================
+    # FINAL VERIFICATION
+    # ============================================
+    - name: Get Docker version
+      shell: /usr/bin/docker --version
+      register: docker_version
+
+    - name: Get kubectl version
+      shell: /usr/bin/kubectl version --client --output=json | jq -r '.clientVersion.gitVersion'
+      register: kubectl_version
+
+    - name: Display all versions
+      debug:
+        msg: |
+          All tools installed successfully!

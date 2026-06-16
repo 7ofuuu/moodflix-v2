@@ -1,0 +1,7 @@
+[kubernetes_servers]
+# Replace the values below with your actual server details
+hostserver ansible_host=YOUR_SERVER_IP \
+           ansible_user=YOUR_USERNAME \
+           ansible_password=YOUR_PASSWORD \
+           ansible_become_password=YOUR_PASSWORD \
+           ansible_ssh_common_args='-o StrictHostKeyChecking=no'
